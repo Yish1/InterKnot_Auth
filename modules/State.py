@@ -49,7 +49,7 @@ class global_state:
         self.new_version_checked = False
         self.login_thread_finished = False
         self.mulit_status = {}
-        self.mulit_login = False
+        self.mulit_login_active = False
 
         # 初始化线程池
         self.threadpool = QThreadPool()

@@ -89,11 +89,11 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
 
         if mode == "init":
             if self.init_finished == False:
-                if state.mulit_login:
-                    pass
-                else:
-                    state.mulit_login = 1
-                for i in range(state.mulit_login - 1):
+                count = int(state.mulit_login or 1)
+                if count < 1:
+                    count = 1
+                state.mulit_login = count
+                for i in range(count - 1):
                     add_new_tab_func()
             self.init_finished = True
 

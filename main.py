@@ -220,7 +220,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def reconnect(self):
         '''重连调用此函数'''
-        if state.mulit_login == True:
+        if state.mulit_login_active == True:
             self.settings_window.mulit_login_now()
         else:
             self.login()
@@ -228,7 +228,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def mulit_login_mode(self, ip=None, user=None, pwd=None):
         try:
             self.login("mulit", ip, user, pwd)
-            state.mulit_login = True
+            state.mulit_login_active = True
         except Exception as e:
             self.update_table(e)
 
