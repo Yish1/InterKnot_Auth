@@ -6,6 +6,7 @@ from .Watch_dog import watch_dog
 from .Working_signals import WorkerSignals
 from .Config_Manager import read_config_file, update_entry
 from .Login_Thread import login_Thread
+from .Easytier import easytier_thread
 
 __all__ = [
     "global_state",
@@ -17,4 +18,5 @@ __all__ = [
     "read_config_file",
     "update_entry",
     "login_Thread",
+    "easytier_thread",
 ]

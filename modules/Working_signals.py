@@ -9,6 +9,7 @@ class WorkerSignals(QObject):
     update_progress = pyqtSignal(int, int, int)
     connected_success = pyqtSignal()
     print_text = pyqtSignal(str)
+    print_text_et = pyqtSignal(str)
     show_message = pyqtSignal(str, str)
     update_check = pyqtSignal()
     logout = pyqtSignal()

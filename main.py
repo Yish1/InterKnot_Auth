@@ -96,6 +96,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             lambda: web.open_new("https://cmxz.top"))
         self.run_settings_action.triggered.connect(self.run_settings)
         self.pushButton_4.clicked.connect(self.settings_window.mulit_login_now)
+        self.pushButton_enable_share.clicked.connect(lambda: self.start_easytier(True))
 
         self.update_list("欢迎加入绳网（InterKnot）！")
 
@@ -166,35 +167,50 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.lineEdit.setText(state.username)
 
     def add_to_startup(self, mode=None):
-        # 获取启动文件夹路径
-        startup_folder = os.path.join(os.getenv(
-            'APPDATA'), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Startup')
-        # 获取当前程序的完整路径
+
+        TASK_NAME = "InterKnot_Auth"
+        def run(cmd):
+            return subprocess.run(cmd, capture_output=True, text=True)
+
+        # 当前程序路径
         app_path = sys.argv[0]
-        shortcut_path = os.path.join(startup_folder, 'SEIG_Auto_Connect.lnk')
+
+        # 检查任务是否存在
+        exists = run(["schtasks", "/Query", "/TN", TASK_NAME]).returncode == 0
 
         if mode == 1:
-            # 删除开机自启项
-            if os.path.exists(shortcut_path):
-                os.remove(shortcut_path)
-                self.update_list("开机自启已关闭")
+            # 关闭开机自启
+            if exists:
+                r = run(["schtasks", "/Delete", "/TN", TASK_NAME, "/F"])
+                if r.returncode == 0:
+                    self.update_list("开机自启已关闭")
+                else:
+                    self.update_list(f"关闭失败：{r.stderr or r.stdout}\n尝试以管理员权限运行软件")
             else:
                 self.update_list("开机自启项不存在，无需删除。")
             return
 
-        # 检查是否已存在开机自启项
-        if os.path.exists(shortcut_path):
-            pass
-        else:
-            self.update_list(f"已添加{app_path}至启动目录")
+        # 开启开机自启
+        if exists:
+            self.update_list("开机自启已存在")
+            return
 
-        # 写入自启动文件
-        shell = win32com.client.Dispatch("WScript.Shell")
-        shortcut = shell.CreateShortCut(shortcut_path)
-        shortcut.TargetPath = app_path
-        shortcut.WorkingDirectory = os.path.dirname(app_path)
-        shortcut.IconLocation = app_path
-        shortcut.save()
+        cmd = [
+            "schtasks",
+            "/Create",
+            "/TN", TASK_NAME,
+            "/TR", f'"{app_path}"',
+            "/SC", "ONSTART",      # 开机启动
+            "/RL", "HIGHEST",      # 最高权限
+            "/F"
+        ]
+
+        r = run(cmd)
+
+        if r.returncode == 0:
+            self.update_list(f"已添加 {app_path} 开机自启")
+        else:
+            self.update_list(f"创建失败：{r.stderr or r.stdout}\n尝试以管理员权限运行软件")
 
     def try_auto_connect(self):
 
@@ -539,15 +555,24 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         elif mode == 0:
             self.progressBar.hide()
 
-    def update_list(self, text, table_name=None):
-        if table_name is None:
-            table = self.listWidget
-        # 超过 300 行，就从前面开始删除
-        if self.listWidget.count() >= 300:
+    def update_list(self, text):
+
+        # 超过 1000 行，就从前面开始删除
+        if self.listWidget.count() >= 1000:
             self.listWidget.takeItem(0)
 
         self.listWidget.addItem(text)
         self.listWidget.setCurrentRow(self.listWidget.count() - 1)
+        print(text)
+
+    def update_et_list(self, text):
+        
+        # 超过 1000 行，就从前面开始删除
+        if self.listWidget_easytier.count() >= 1000:
+            self.listWidget_easytier.takeItem(0)
+
+        self.listWidget_easytier.addItem(text)
+        self.listWidget_easytier.setCurrentRow(self.listWidget_easytier.count() - 1)
         print(text)
 
     def check_new_version(self):
@@ -607,6 +632,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             state.login_mode = 1
             self.update_config("login_mode", "1")
 
+    def start_easytier(self, start=False):
+        if state.auto_share == "1" or start:
+            try:
+                self.easytier_thread = easytier_thread()
+                self.easytier_thread.signals.print_text.connect(self.update_list)
+                self.easytier_thread.signals.print_text_et.connect(self.update_et_list)
+                state.threadpool.start(self.easytier_thread)
+            except Exception as e:
+                self.update_list(f"启动隧道失败：{e}")
 
 class login_Retry_Thread(QRunnable):
     def __init__(self, times, parent=None):
