@@ -250,6 +250,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # 配置项定义: (属性名, 默认值, 类型转换函数)
         config_maps = [
+            ('first_run', 1, int),
             ('username', "", str),
             ('password', "", str),
             ('wlanacip', "0.0.0.0", str),
@@ -264,26 +265,38 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             ('auto_share', "0", str),
         ]
 
-        try:
-            for key, default, converter in config_maps:
-                value = config.get(key)
-                if value:
-                    setattr(state, key, converter(value))
-                else:
-                    self.update_config(key, default, "w!")
-                    setattr(state, key, default)
+        # try:
+        for key, default, converter in config_maps:
+            value = config.get(key)
+            if value:
+                setattr(state, key, converter(value))
+            else:
+                self.update_config(key, default, "w!")
+                setattr(state, key, default)
 
-            # 更新UI状态
-            self.checkBox.setChecked(state.save_pwd == "1")
-            self.checkBox_2.setChecked(state.auto_connect == "1")
-            self.checkBox_t.setChecked(state.login_mode != 0)
-            self.checkBox_dog.setChecked(state.enable_watch_dog == "1")
-            self.checkBox_auto_share.setChecked(state.auto_share == "1")
+        # 更新UI状态
+        self.checkBox.setChecked(state.save_pwd == "1")
+        self.checkBox_2.setChecked(state.auto_connect == "1")
+        self.checkBox_t.setChecked(state.login_mode != 0)
+        self.checkBox_dog.setChecked(state.enable_watch_dog == "1")
+        self.checkBox_auto_share.setChecked(state.auto_share == "1")
 
-        except Exception as e:
-            self.update_table(f"配置读取失败，已重置为默认值！{e} ")
-            os.remove(state.config_path)
-            self.read_config()
+        if state.first_run == 1:
+            self.show_message(message=
+                            '欢迎加入绳网（InterKnot）！\n'
+                            '在无形的数据洪流之中，我们以结为契，以绳为网，将零散的节点重新编织。绳网源于对效率与自由的追求——让繁琐的认证流程化作一次优雅的连接。\n\n'
+                            '借助 EasyTier 的组网能力，已连接的设备还可作为出口节点，在封闭的边界之中，悄然编织属于自己的通路。\n\n'
+                            '<a href="https://github.com/Yish1/InterKnot_Auth">'
+                            'InterKnot项目地址: Yish1/InterKnot_Auth'
+                            '</a>',
+                            title="欢迎",
+                            first=1)
+            self.update_config("first_run", 0)
+
+        # except Exception as e:
+        #     self.update_table(f"配置读取失败，已重置为默认值！{e} ")
+        #     os.remove(state.config_path)
+        #     self.read_config()
 
         return config
 
@@ -542,7 +555,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         msgBox = QMessageBox()
         msgBox.setWindowTitle("检测到新版本！")
         msgBox.setText(message)
-        msgBox.setWindowIcon(QtGui.QIcon(':/icons/yish.ico'))
+        msgBox.setWindowIcon(QtGui.QIcon(':/icon/yish.ico'))
         okButton = msgBox.addButton("立刻前往", QMessageBox.AcceptRole)
         noButton = msgBox.addButton("下次一定", QMessageBox.RejectRole)
         msgBox.exec_()
@@ -551,6 +564,25 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             os.system("start https://cmxz.top/SAC")
         else:
             self.update_table("检测到新版本！")
+
+    def show_message(self, message, title, first=None):
+        msgBox = QMessageBox()
+        msgBox.setWindowTitle(title)
+        msgBox.setWindowIcon(QtGui.QIcon(':/icon/yish.ico'))
+        if message is None:
+            message = "未知错误"
+        message = str(message)
+        
+        if first == 1:
+            msgBox.setIconPixmap(QtGui.QIcon(
+                ':/icon/yish.ico').pixmap(100, 100))
+            msgBox.setTextFormat(QtCore.Qt.RichText)
+            lines = message.split('\n', 1)
+            remaining = lines[1].replace('\n', '<br>')
+            message = f'<h2 style="margin: 0; padding: 0;">{lines[0]}</h2><br>{remaining}'
+    
+        msgBox.setText(message)
+        msgBox.exec_()
 
     def change_login_mode(self, mode):
 

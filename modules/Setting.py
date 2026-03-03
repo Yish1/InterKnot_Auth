@@ -2,6 +2,7 @@ import re
 import os
 import requests
 import webbrowser as web
+import win32com.client
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QSystemTrayIcon, QMenu, QAction, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
 from PyQt5.QtCore import QThreadPool, pyqtSignal, QRunnable, QObject, QTimer, QMutex
@@ -21,6 +22,7 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
         self.setupUi(central_widget)
         self.setWindowTitle("登录参数")
         self.setWindowIcon(QtGui.QIcon(':/icon/yish.ico'))
+        self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.WindowMinMaxButtonsHint)
         # self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.resize(340, 420)
 
@@ -130,7 +132,7 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
 
     def tab_changed(self, index, mode):
         if mode == 1:
-            if index == 1:
+            if index == 2:
                 index = self.tabWidget_2.currentIndex()
                 self.add_controls_to_tab(index)
                 self.add_new_tab("init")
@@ -261,10 +263,50 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
         # 启动登录过程
         start_login()
 
+    def get_lan_ip(self):
+        wmi = win32com.client.GetObject("winmgmts:")
+
+        q1 = "SELECT * FROM Win32_NetworkAdapterConfiguration WHERE IPEnabled=True"
+        configs = wmi.ExecQuery(q1)
+        iplist = []
+
+        def _is_private_ipv4(ip: str) -> bool:
+            if not ip or ip.startswith("127."):
+                return False
+            if ip.startswith("10.") or ip.startswith("192.168."):
+                return True
+            if ip.startswith("172."):
+                try:
+                    b = int(ip.split(".")[1])
+                    return 16 <= b <= 31
+                except:
+                    return False
+            return False
+
+        for cfg in configs:
+            ips = getattr(cfg, "IPAddress", None)
+            gws = getattr(cfg, "DefaultIPGateway", None)
+
+            if not ips:
+                continue
+
+            if gws:
+                for ip in ips:
+                    if "." in ip and ":" not in ip and _is_private_ipv4(ip):
+                        iplist.append(ip)
+                        if "172." in ip:
+                            iplist.remove(ip)
+                            iplist.insert(0, ip)
+
+        return iplist if iplist else "未获取有效IP地址"
     def get_config_value(self):
         self.lineEdit.setText(state.esurfingurl)
         self.lineEdit_2.setText(state.wlanacip)
         self.lineEdit_3.setText(state.wlanuserip)
+        # 获取本地网卡IP
+        local_ip = self.get_lan_ip()
+        self.comboBox.addItem(local_ip if isinstance(local_ip, str) else local_ip[0])
+        self.comboBox.addItem("IP仅供参考，分享请使用物理IP")
 
     def save_config(self):
         self.Main_window.update_config("esurfingurl", self.lineEdit.text())

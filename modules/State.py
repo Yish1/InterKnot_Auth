@@ -26,6 +26,7 @@ class global_state:
         self.config_path = os.path.join(self.config_dir, "config.ini")
 
         # 配置类变量
+        self.first_run = 1
         self.username = None
         self.password = None
         self.esurfingurl = None
