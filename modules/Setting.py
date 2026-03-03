@@ -133,8 +133,8 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
     def tab_changed(self, index, mode):
         if mode == 1:
             if index == 2:
-                index = self.tabWidget_2.currentIndex()
-                self.add_controls_to_tab(index)
+                index_2 = self.tabWidget_2.currentIndex()
+                self.add_controls_to_tab(index_2)
                 self.add_new_tab("init")
 
         elif mode == 0:
@@ -308,10 +308,19 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
         self.comboBox.addItem(local_ip if isinstance(local_ip, str) else local_ip[0])
         self.comboBox.addItem("IP仅供参考，分享请使用物理IP")
 
+        self.lineEdit_4.setText(state.et_secret_key)
+        self.spinBox.setValue(state.et_port)
+        self.checkBox.setChecked(True if state.et_bind_device else False)
+        self.checkBox_2.setChecked(True if state.et_enable_ipv6 else False)
+
     def save_config(self):
         self.Main_window.update_config("esurfingurl", self.lineEdit.text())
         self.Main_window.update_config("wlanacip", self.lineEdit_2.text())
         self.Main_window.update_config("wlanuserip", self.lineEdit_3.text())
+        self.Main_window.update_config("et_secret_key", self.lineEdit_4.text())
+        self.Main_window.update_config("et_port", self.spinBox.value())
+        self.Main_window.update_config("et_bind_device", 1 if self.checkBox.isChecked() else 0)
+        self.Main_window.update_config("et_enable_ipv6", 1 if self.checkBox_2.isChecked() else 0)
         self.close()
 
     def get_default(self):
@@ -327,14 +336,14 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
             try:
                 self.pushButton.setEnabled(True)
                 self.label_4.hide()
-                self.Main_window.update_table("成功获取参数")
+                self.Main_window.update_list("成功获取参数")
             except:
                 pass
         except Exception as e:
             if "'NoneType' object has no attribute 'group'" in str(e):
-                self.Main_window.update_table(f"没有从重定向的链接中获取到参数，请检查网线连接，或者是否已经能够上网了？{e}")
+                self.Main_window.update_list(f"没有从重定向的链接中获取到参数，请检查网线连接，或者是否已经能够上网了？{e}")
             else:
-                self.Main_window.update_table(f"获取参数失败(请检查网线，并确保断开了热点)：{e}")
+                self.Main_window.update_list(f"获取参数失败(请检查网线，并确保断开了热点)：{e}")
             self.label_4.show()
             self.pushButton.setEnabled(False)
 

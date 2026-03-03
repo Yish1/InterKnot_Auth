@@ -80,24 +80,24 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "save_pwd", 1 if self.checkBox.isChecked() else 0))
         self.checkBox_2.clicked.connect(lambda: self.update_config(
             "auto_connect", 1 if self.checkBox_2.isChecked() else 0) or (
-                self.update_table("开机将自启，并自动登录，需要记住密码\n看门狗每10分钟检测一次网络连接情况\n下次自动登录成功时，将启动看门狗") if self.checkBox_2.isChecked() else None) or (
+                self.update_list("开机将自启，并自动登录，需要记住密码\n看门狗每10分钟检测一次网络连接情况\n下次自动登录成功时，将启动看门狗") if self.checkBox_2.isChecked() else None) or (
                 self.checkBox.setChecked(True) if self.checkBox_2.isChecked() else None) or (
                     self.add_to_startup() if self.checkBox_2.isChecked() else self.add_to_startup(1)) or (self.update_config("save_pwd", 1))
         )
         self.checkBox_auto_share.clicked.connect(lambda: self.update_config(
-            "auto_share", 1 if self.checkBox_auto_share.isChecked() else 0) or (self.update_table("已开启自动共享，启动时将自动启动隧道") if self.checkBox_auto_share.isChecked() else self.update_table("已关闭自动共享")))
+            "auto_share", 1 if self.checkBox_auto_share.isChecked() else 0) or (self.update_list("已开启自动共享，启动时将自动启动隧道") if self.checkBox_auto_share.isChecked() else self.update_list("已关闭自动共享")))
 
         self.checkBox_t.clicked.connect(lambda: self.change_login_mode(1 if self.checkBox_t.isChecked() else 0))
 
         self.checkBox_dog.clicked.connect(lambda: self.update_config(
-            "enable_watch_dog", 1 if self.checkBox_dog.isChecked() else 0) or (self.update_table("看门狗将在下次登录时开启，持续监测网络状态，根据网卡状态智能重连") if self.checkBox_dog.isChecked() else self.update_table("看门狗已禁用")))
+            "enable_watch_dog", 1 if self.checkBox_dog.isChecked() else 0) or (self.update_list("看门狗将在下次登录时开启，持续监测网络状态，根据网卡状态智能重连") if self.checkBox_dog.isChecked() else self.update_list("看门狗已禁用")))
         
         self.pushButton_3.clicked.connect(
             lambda: web.open_new("https://cmxz.top"))
         self.run_settings_action.triggered.connect(self.run_settings)
         self.pushButton_4.clicked.connect(self.settings_window.mulit_login_now)
 
-        self.update_table("欢迎加入绳网（InterKnot）！")
+        self.update_list("欢迎加入绳网（InterKnot）！")
 
     def on_tray_icon_clicked(self, reason):
         if reason == QSystemTrayIcon.Trigger:  # 仅响应左键单击
@@ -130,7 +130,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             if msg_box.clickedButton() == btn_minimize:
                 if state.settings_flag != None:
-                    self.update_table("请先关闭设置界面再最小化！")
+                    self.update_list("请先关闭设置界面再最小化！")
                     event.ignore()
                     return
                 event.ignore()  # 最小化到托盘
@@ -177,16 +177,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # 删除开机自启项
             if os.path.exists(shortcut_path):
                 os.remove(shortcut_path)
-                self.update_table("开机自启已关闭")
+                self.update_list("开机自启已关闭")
             else:
-                self.update_table("开机自启项不存在，无需删除。")
+                self.update_list("开机自启项不存在，无需删除。")
             return
 
         # 检查是否已存在开机自启项
         if os.path.exists(shortcut_path):
             pass
         else:
-            self.update_table(f"已添加{app_path}至启动目录")
+            self.update_list(f"已添加{app_path}至启动目录")
 
         # 写入自启动文件
         shell = win32com.client.Dispatch("WScript.Shell")
@@ -200,7 +200,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.read_config()
         if state.auto_connect == "1":
-            self.update_table("正在尝试自动连接...")
+            self.update_list("正在尝试自动连接...")
 
             if not state.username.startswith('t') and state.login_mode == 0:
                 state.jar_login = True
@@ -213,7 +213,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.enable_buttoms)
             self.auto_thread.signals.thread_login.connect(self.login)
             self.auto_thread.signals.finished.connect(
-                lambda: self.update_table("结束自动登录线程"))
+                lambda: self.update_list("结束自动登录线程"))
             state.threadpool.start(self.auto_thread)
             state.retry_thread_started = True
             self.add_to_startup()
@@ -233,15 +233,20 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.login("mulit", ip, user, pwd)
             state.mulit_login_active = True
         except Exception as e:
-            self.update_table(e)
+            self.update_list(e)
 
     def run_settings(self):
 
-        if self.settings_window is not None:
+        if self.settings_window is not None and self.settings_window.isVisible() == False:
             try:
+                self.settings_window = settingsWindow(self)
                 self.settings_window.run_settings_window()
             except Exception as e:
-                self.update_table(f"无法打开设置界面{e}")
+                self.update_list(f"无法打开设置界面{e}")
+
+        elif self.settings_window is not None and self.settings_window.isVisible() == True:
+            print("设置界面已打开，无需重复打开！")
+            self.settings_window.activateWindow()
 
     def read_config(self):
         config = {}
@@ -263,6 +268,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             ('login_mode', 0, int),
             ('enable_watch_dog', "1", str),
             ('auto_share', "0", str),
+            # Easytier
+            ('et_secret_key', "Hello_InterKnot", str),
+            ('et_port', 51145, int),
+            ('et_bind_device', 1, int),
+            ('et_enable_ipv6', 0, int)
         ]
 
         # try:
@@ -294,7 +304,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.update_config("first_run", 0)
 
         # except Exception as e:
-        #     self.update_table(f"配置读取失败，已重置为默认值！{e} ")
+        #     self.update_list(f"配置读取失败，已重置为默认值！{e} ")
         #     os.remove(state.config_path)
         #     self.read_config()
 
@@ -324,13 +334,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         if state.esurfingurl == "0.0.0.0:0" or state.esurfingurl == "自动获取失败,请检查网线连接":
             self.run_settings()
-            self.update_table("请先获取或手动填写参数！")
+            self.update_list("请先获取或手动填写参数！")
             return
         if not state.username:
-            self.update_table("账号都不输入登录个锤子啊！")
+            self.update_list("账号都不输入登录个锤子啊！")
             return
         if not state.password or state.password == "0":
-            self.update_table("你账号没有密码的吗？？？")
+            self.update_list("你账号没有密码的吗？？？")
             return
 
         # 判断是否以 't' 开头，仅适用于SEIG
@@ -356,17 +366,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             elif data['resultCode'] == "13018000":
                 status = "登录失败：已办理一人一号多终端业务的用户，请使用客户端登录"
-                self.update_table("已办理一人一号多终端业务的用户，请使用客户端登录")
+                self.update_list("已办理一人一号多终端业务的用户，请使用客户端登录")
 
             else:
                 status = f"登录失败: {data['resultInfo']}"
-                self.update_table(status)
+                self.update_list(status)
 
                 if data['resultInfo'] == "用户认证失败" or data['resultInfo'] == "密码错误":
                     state.stop_watch_dog = True
                     state.stop_retry_thread = True
                     if getattr(state, 'retry_thread_started') == True:
-                        self.update_table("密码错误，取消自动重试")
+                        self.update_list("密码错误，取消自动重试")
                     return
 
                 if data['resultInfo'] == "验证码错误":
@@ -376,16 +386,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                         try:
                             if state.retry_thread_started == False:
                                 state.connected = False
-                                self.update_table("验证码识别错误，即将重试...")
+                                self.update_list("验证码识别错误，即将重试...")
                                 self.retry_thread = login_Retry_Thread(5, self)
                                 self.retry_thread.signals.enable_buttoms.connect(
                                     self.enable_buttoms)
                                 self.retry_thread.signals.thread_login.connect(
                                     self.login)
                                 self.retry_thread.signals.print_text.connect(
-                                    self.update_table)
+                                    self.update_list)
                                 self.retry_thread.signals.finished.connect(
-                                    lambda: self.update_table("结束RETRY线程"))
+                                    lambda: self.update_list("结束RETRY线程"))
                                 state.threadpool.start(self.retry_thread)
                                 state.retry_thread_started = True
                         except Exception as e:
@@ -395,11 +405,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 state.mulit_status[current_ip] = status
 
                 if len(state.mulit_status) == len(state.mulit_info):
-                    self.update_table("***多拨登录结果汇总***")
+                    self.update_list("***多拨登录结果汇总***")
                     success = False
 
                     for ip, stat in state.mulit_status.items():
-                        self.update_table(f"{ip} : {stat}")
+                        self.update_list(f"{ip} : {stat}")
                         if stat == "登录成功":
                             success = True
 
@@ -418,13 +428,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         login_thread.signals.thread_login.connect(
             self.login)
         login_thread.signals.print_text.connect(
-            self.update_table)
+            self.update_list)
         login_thread.signals.login_status.connect(
             login_status)
         login_thread.signals.run_settings.connect(
             self.run_settings)
         login_thread.signals.finished.connect(
-            lambda: self.update_table("结束登录线程"))
+            lambda: self.update_list("结束登录线程"))
         state.threadpool.start(login_thread)
 
     def run_watch_dog(self):
@@ -433,13 +443,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         watchdog_thread.signals.update_progress.connect(
             self.update_progress_bar)
         watchdog_thread.signals.print_text.connect(
-            self.update_table)
+            self.update_list)
         watchdog_thread.signals.thread_login.connect(
             self.reconnect)
         state.threadpool.start(watchdog_thread)
 
     def login_jar(self, username, password, userip, acip):
-        self.update_table("即将登录: " + username + " IP: " + userip)
+        self.update_list("即将登录: " + username + " IP: " + userip)
         self.enable_buttoms(0)
         try:
             os.remove("logout.signal")
@@ -451,14 +461,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.jar_Thread.signals.enable_buttoms.connect(self.enable_buttoms)
             # self.jar_Thread.signals.connected_success.connect(
             #     self.update_progress_bar)
-            self.jar_Thread.signals.print_text.connect(self.update_table)
+            self.jar_Thread.signals.print_text.connect(self.update_list)
             self.jar_Thread.signals.update_check.connect(
                 self.check_new_version)
             self.jar_Thread.signals.jar_login_success.connect(
                 self.save_password)
             state.threadpool.start(self.jar_Thread)
         except Exception as e:
-            self.update_table(f"登录失败：{e}")
+            self.update_list(f"登录失败：{e}")
             self.enable_buttoms(1)
 
     def save_password(self):
@@ -475,7 +485,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 with open('logout.signal', 'w', encoding='utf-8') as file:
                     file.write("")
             jar_Thread.term_all_processes()
-            self.update_table("执行下线操作中, 请稍后...")
+            self.update_list("执行下线操作中, 请稍后...")
             state.jar_login = False
             return
 
@@ -496,18 +506,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
                 if response.status_code == 200:
                     data = response.json()
-                    self.update_table("成功发送下线请求")
+                    self.update_list("成功发送下线请求")
                     if data['resultCode'] == "0" or data['resultCode'] == "13002000":
                         state.stop_watch_dog = True
-                        self.update_table("下线成功")
+                        self.update_list("下线成功")
                     else:
-                        self.update_table(f"下线失败: {data['resultInfo']}")
+                        self.update_list(f"下线失败: {data['resultInfo']}")
                 else:
-                    self.update_table(f"请求失败，状态码：{response.status_code}")
+                    self.update_list(f"请求失败，状态码：{response.status_code}")
             except Exception as e:
-                self.update_table(f"下线失败：{e}")
+                self.update_list(f"下线失败：{e}")
         else:
-            self.update_table("您尚未登录，无需下线！")
+            self.update_list("您尚未登录，无需下线！")
 
     def enable_buttoms(self, mode):
         if mode == 0:
@@ -529,7 +539,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         elif mode == 0:
             self.progressBar.hide()
 
-    def update_table(self, text):
+    def update_list(self, text, table_name=None):
+        if table_name is None:
+            table = self.listWidget
         # 超过 300 行，就从前面开始删除
         if self.listWidget.count() >= 300:
             self.listWidget.takeItem(0)
@@ -546,10 +558,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.update_thread.signals.show_message.connect(
             self.update_message)
         self.update_thread.signals.print_text.connect(
-            self.update_table)
+            self.update_list)
         self.update_thread.signals.logout.connect(self.logout)
         # self.update_thread.signals.finished.connect(
-        #     lambda: self.update_table("检查更新线程结束"))
+        #     lambda: self.update_list("检查更新线程结束"))
 
     def update_message(self, message):  # 更新弹窗
         msgBox = QMessageBox()
@@ -563,7 +575,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if clickedButton == okButton:
             os.system("start https://cmxz.top/SAC")
         else:
-            self.update_table("检测到新版本！")
+            self.update_list("检测到新版本！")
 
     def show_message(self, message, title, first=None):
         msgBox = QMessageBox()
@@ -587,11 +599,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def change_login_mode(self, mode):
 
         if mode == 0:
-            self.update_table("已切换为自动识别模式")
+            self.update_list("已切换为自动识别模式")
             state.login_mode = 0
             self.update_config("login_mode", "0")
         elif mode == 1:
-            self.update_table("已切换为t模式")
+            self.update_list("已切换为t模式")
             state.login_mode = 1
             self.update_config("login_mode", "1")
 
@@ -636,7 +648,7 @@ class login_Retry_Thread(QRunnable):
 
 
 if __name__ == "__main__":
-    # try:
+    try:
         # 防止重复运行
         lock_file = os.path.expanduser("~/.Seig-auto-connect.lock")
         fd = os.open(lock_file, os.O_RDWR | os.O_CREAT)
@@ -705,8 +717,8 @@ if __name__ == "__main__":
         mainWindow.show()
         sys.exit(app.exec_())
 
-    # except Exception as e:
-    #     user32 = ctypes.windll.user32
-    #     user32.MessageBoxW(None, f"程序启动时遇到严重错误:{e}", "Warning!", 0x30)
-    #     sys.exit()
-# 编译指令nuitka --standalone --lto=yes --msvc=latest --disable-ccache --windows-console-mode=disable --enable-plugin=pyqt5,upx --upx-binary="F:\Programs\upx\upx.exe" --include-data-dir=ddddocr=ddddocr --include-data-dir=jre=jre --include-data-file=login.jar=login.jar --include-package=modules --output-dir=SAC --windows-icon-from-ico=yish.ico --nofollow-import-to=unittest --output-filename=绳网认证.exe main.py
+    except Exception as e:
+        user32 = ctypes.windll.user32
+        user32.MessageBoxW(None, f"程序启动时遇到严重错误:{e}", "Warning!", 0x30)
+        sys.exit()
+# 编译指令nuitka --standalone --lto=yes --msvc=latest --disable-ccache --windows-console-mode=disable --enable-plugin=pyqt5,upx --upx-binary="F:\Programs\upx\upx.exe" --include-data-dir=ddddocr=ddddocr --include-data-dir=jre=jre --include-data-dir=jre=easytier --include-data-file=login.jar=login.jar --include-package=modules --output-dir=SAC --windows-icon-from-ico=yish.ico --nofollow-import-to=unittest --output-filename=绳网认证.exe main.py

@@ -43,10 +43,10 @@ class global_state:
         self.auto_share = False
 
         # EasyTier相关配置
-        self.easytier_port = 51145
-        self.secret_key = "Misaka_Network_Password"
-        self.bind_device = True
-        self.enable_ipv6 = False
+        self.et_port = 51145
+        self.et_secret_key = "Hello_InterKnot"
+        self.et_bind_device = True
+        self.et_enable_ipv6 = False
 
         # 运行时变量
         self.stop_watch_dog = False
