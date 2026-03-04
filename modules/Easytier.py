@@ -148,6 +148,7 @@ dev_name = "InterKnot"
         )
 
         failure_time = 0
+        tun_ok = False
 
         for line in self.main_window.et_process.stdout:
             output = True
@@ -162,8 +163,13 @@ dev_name = "InterKnot"
             if "starting easytier" in lower_line:
                 self.signals.print_text.emit(text)
 
-            if ("new peer connection added" in lower_line or "tun device ready" in lower_line) and self.mode == "client":
+            if "new peer connection added" in lower_line and self.mode == "client":
                 self.signals.print_text.emit("ET: 已连接到绳网节点，即将添加路由...")
+                if tun_ok:
+                    self.add_route()
+
+            if "tun device ready" in lower_line:
+                tun_ok = True
                 self.add_route()
 
             if "remote_addr" in lower_line and self.mode == "server":
