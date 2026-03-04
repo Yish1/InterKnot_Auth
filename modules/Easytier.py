@@ -147,30 +147,15 @@ dev_name = "InterKnot"
             creationflags=subprocess.CREATE_NO_WINDOW
         )
 
-        output = True
         failure_time = 0
 
         for line in self.main_window.et_process.stdout:
+            output = True
             line = line.strip()
             lower_line = line.lower()
 
-            # 先检测错误
-            if any(k in lower_line for k in ("panic", "stopping", "error")):
-                self.signals.print_text.emit(
-                    f"隧道故障：{line}，请切换至'隧道日志'查看详情！"
-                )
-
-                if "stopping" in lower_line:
-                    self.signals.finished.emit()
-
-            # 控制 TOML 屏蔽区
-            if "############### TOML ###############" in line:
+            if "network_secret" in line:
                 output = False
-                continue
-
-            if "-----------------------------------" in line:
-                output = True
-                continue
 
             # 成功启动
             text = "ET: 共享隧道已创建成功，可切换至'隧道日志'查看详情！" if self.mode == "server" else "正在连接到绳网...可切换至'隧道日志'查看详情！"
@@ -184,8 +169,9 @@ dev_name = "InterKnot"
             if "remote_addr" in lower_line and self.mode == "server":
                 self.signals.print_text.emit(f"ET: {line.split('remote_addr: Some(Url { url: "wg://')[1].strip().split(':')[0]} 已连接到绳网！")
             
-            if "connecting to peer error" in lower_line and self.mode == "client":
+            if "connect to peer error" in lower_line and self.mode == "client":
                 failure_time += 1
+                output = False
                 if failure_time >= 5 and self.route_added:
                     self.signals.print_text.emit("ET: 连接绳网失败，删除路由并重试...")
                     self.remove_et_route()
@@ -194,6 +180,15 @@ dev_name = "InterKnot"
             if "peer connection removed" in lower_line and self.mode == "client":
                 self.signals.print_text.emit("ET: 绳网节点失联，删除路由并重试...")
                 self.remove_et_route()
+
+            # 检测错误
+            if any(k in lower_line for k in ("panic", "stopping", "error")) and output:
+                self.signals.print_text.emit(
+                    f"隧道故障：{line}，请切换至'隧道日志'查看详情！"
+                )
+
+                if "stopping" in lower_line:
+                    self.signals.finished.emit()
 
             # 输出日志
             if output:
