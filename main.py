@@ -692,7 +692,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.pushButton_enable_share.clicked.connect(lambda: self.start_easytier(True))
                 self.pushButton.setEnabled(True)
 
-                if self.et_connected:
+                if hasattr(self, 'et_connected') and self.et_connected:
                     self.remove_et_route()
                     
                 self.et_connected = False
