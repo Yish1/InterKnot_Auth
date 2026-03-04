@@ -65,6 +65,31 @@ dev_name = "InterKnot"
             return False
         return True
     
+    def add_route(self):
+        cmd = [
+            "route",
+            "add",
+            "0.0.0.0",
+            "mask",
+            "0.0.0.0",
+            "10.114.114.10",
+            "metric",
+            "1"
+        ]
+
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            shell=True,
+            creationflags=subprocess.CREATE_NO_WINDOW
+        )
+
+        if result.returncode == 0:
+            self.print_to_all("路由添加成功")
+        else:
+            self.print_to_all(f"路由添加失败: {result.stderr}")
+
     def print_to_all(self, text):
         self.signals.print_text_et.emit(text)
         self.signals.print_text.emit(text)
@@ -122,10 +147,13 @@ dev_name = "InterKnot"
                 continue
 
             # 成功启动
-
             text = "共享隧道已创建成功，可切换至'隧道日志'查看详情！" if self.mode == "server" else "正在连接到绳网...可切换至'隧道日志'查看详情！"
             if "starting easytier" in lower_line:
                 self.signals.print_text.emit(text)
+
+            if "tun device ready" in lower_line and self.mode == "client":
+                self.signals.print_text.emit("TUN已就绪，即将添加路由...")
+                self.add_route()
 
             # 输出日志
             if output:
