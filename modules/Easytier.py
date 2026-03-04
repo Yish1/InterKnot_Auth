@@ -86,9 +86,30 @@ dev_name = "InterKnot"
         )
 
         if result.returncode == 0:
-            self.print_to_all("路由添加成功")
+            self.print_to_all("ET:路由添加成功")
         else:
-            self.print_to_all(f"路由添加失败: {result.stderr}")
+            self.print_to_all(f"ET:路由添加失败: {result.stderr}")
+
+    def remove_et_route(self):
+        cmd = [
+            "route",
+            "delete",
+            "0.0.0.0",
+            "10.129.114.10"
+        ]
+
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            shell=True,
+            creationflags=subprocess.CREATE_NO_WINDOW
+        )
+
+        if result.returncode == 0:
+            self.update_list("ET:路由删除成功")
+        else:
+            self.update_list(f"ET:路由删除失败: {result.stderr}")
 
     def print_to_all(self, text):
         self.signals.print_text_et.emit(text)
@@ -100,7 +121,7 @@ dev_name = "InterKnot"
         if not r:
             return # 找不到EasyTier Core
         
-        self.print_to_all(f"启动绳网共享进程...")
+        self.print_to_all(f"ET:启动绳网共享进程...")
 
         if hasattr(self.main_window, 'et_process') and self.main_window.et_process is not None:
             if isinstance(self.main_window.et_process, subprocess.Popen) and self.main_window.et_process.poll() is None:
@@ -123,12 +144,13 @@ dev_name = "InterKnot"
         )
 
         output = True
+        failure_time = 0
 
         for line in self.main_window.et_process.stdout:
             line = line.strip()
             lower_line = line.lower()
 
-            # 先检测错误（不受 output 控制）
+            # 先检测错误
             if any(k in lower_line for k in ("panic", "stopping", "error")):
                 self.signals.print_text.emit(
                     f"隧道故障：{line}，请切换至'隧道日志'查看详情！"
@@ -147,13 +169,27 @@ dev_name = "InterKnot"
                 continue
 
             # 成功启动
-            text = "共享隧道已创建成功，可切换至'隧道日志'查看详情！" if self.mode == "server" else "正在连接到绳网...可切换至'隧道日志'查看详情！"
+            text = "ET:共享隧道已创建成功，可切换至'隧道日志'查看详情！" if self.mode == "server" else "正在连接到绳网...可切换至'隧道日志'查看详情！"
             if "starting easytier" in lower_line:
                 self.signals.print_text.emit(text)
 
             if "tun device ready" in lower_line and self.mode == "client":
-                self.signals.print_text.emit("TUN已就绪，即将添加路由...")
+                self.signals.print_text.emit("ET:TUN已就绪，即将添加路由...")
                 self.add_route()
+
+            if "remote_addr" in lower_line and self.mode == "server":
+                self.signals.print_text.emit(f"ET:{line.split('remote_addr: Some(Url { url: "wg://')[1].strip().split(':')[0]} 已连接到绳网！")
+            
+            if "connecting to" in lower_line and self.mode == "client":
+                failure_time += 1
+                if failure_time >= 8:
+                    self.signals.print_text.emit("ET:连接绳网失败，删除路由并重试...")
+                    self.remove_et_route()
+                    failure_time = 0
+
+            if "peer connection removed" in lower_line and self.mode == "client":
+                self.signals.print_text.emit("ET:绳网节点失联，删除路由并重试...")
+                self.remove_et_route()
 
             # 输出日志
             if output:

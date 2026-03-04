@@ -685,7 +685,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             if hasattr(self.et_process, "terminate"):
                 self.et_process.terminate()
                 self.et_process = None
-                self.update_list("已停止隧道")
+                self.update_list("ET:已停止隧道")
         
                 self.pushButton_enable_share.setText("启用共享")
                 self.pushButton_enable_share.clicked.disconnect()
@@ -693,30 +693,33 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.pushButton.setEnabled(True)
 
                 if self.et_connected:
-                    cmd = [
-                        "route",
-                        "delete",
-                        "0.0.0.0",
-                        "10.129.114.10"
-                    ]
-
-                    result = subprocess.run(
-                        cmd,
-                        capture_output=True,
-                        text=True,
-                        shell=True,
-                        creationflags=subprocess.CREATE_NO_WINDOW
-                    )
-
-                    if result.returncode == 0:
-                        self.update_list("路由删除成功")
-                    else:
-                        self.update_list(f"路由删除失败: {result.stderr}")
-
+                    self.remove_et_route()
+                    
                 self.et_connected = False
                 
         except Exception as e:
-            self.update_list(f"停止隧道失败：{e}")
+            self.update_list(f"ET:停止隧道失败：{e}")
+
+    def remove_et_route(self):
+        cmd = [
+            "route",
+            "delete",
+            "0.0.0.0",
+            "10.129.114.10"
+        ]
+
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            shell=True,
+            creationflags=subprocess.CREATE_NO_WINDOW
+        )
+
+        if result.returncode == 0:
+            self.update_list("ET:路由删除成功")
+        else:
+            self.update_list(f"ET:路由删除失败: {result.stderr}")
 
     def connect_et(self):
         try:
