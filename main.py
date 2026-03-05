@@ -102,7 +102,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # 启动后运行
         self.start_easytier()
-        
+
     def on_tray_icon_clicked(self, reason):
         if reason == QSystemTrayIcon.Trigger:  # 仅响应左键单击
             self.showNormal()
@@ -304,7 +304,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             ('auto_share', "0", str),
             # Easytier
             ('et_secret_key', "Hello_InterKnot", str),
-            ('et_bind_device', 1, int),
             ('et_enable_ipv6', 0, int)
         ]
 

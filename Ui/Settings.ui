@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>391</width>
+    <width>392</width>
     <height>507</height>
    </rect>
   </property>
@@ -230,7 +230,7 @@
           <string>隧道配置</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_6">
-          <item row="8" column="0" colspan="2">
+          <item row="7" column="0" colspan="2">
            <widget class="QCheckBox" name="checkBox_2">
             <property name="text">
              <string>禁用IPv6</string>
@@ -253,6 +253,19 @@
             </property>
            </widget>
           </item>
+          <item row="8" column="0" colspan="2">
+           <widget class="QLabel" name="label_8">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>端口：</string>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="0">
            <widget class="QLabel" name="label_7">
             <property name="sizePolicy">
@@ -263,26 +276,6 @@
             </property>
             <property name="text">
              <string>密钥: </string>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="0" colspan="2">
-           <widget class="QCheckBox" name="checkBox">
-            <property name="text">
-             <string>仅使用物理网卡</string>
-            </property>
-           </widget>
-          </item>
-          <item row="9" column="0" colspan="2">
-           <widget class="QLabel" name="label_8">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>端口：</string>
             </property>
            </widget>
           </item>

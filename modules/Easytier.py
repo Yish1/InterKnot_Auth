@@ -35,10 +35,10 @@ network_name = "InterKnot"
 network_secret = "{state.et_secret_key}"
 
 [flags]
-bind_device = {"true" if state.et_bind_device == "1" else "false"}
+bind_device = true
 dev_name = "InterKnot"
 enable_exit_node = true
-enable_ipv6 = {"true" if state.et_enable_ipv6 == "1" else "false"}
+enable_ipv6 = {"true" if state.et_enable_ipv6 == 1 else "false"}
 '''
         elif self.mode == "client":
             toml = f'''
@@ -170,7 +170,7 @@ dev_name = "InterKnot"
                 continue
 
             # 成功启动
-            text = "ET: 共享隧道已创建成功，可切换至'隧道日志'查看详情！" if self.mode == "server" else "正在连接到绳网...可切换至'隧道日志'查看详情！"
+            text = "ET: 共享隧道已创建成功，可切换至'隧道日志'查看详情！\nET: 分享时请告知对方您的IP地址以及密码" if self.mode == "server" else "正在连接到绳网...可切换至'隧道日志'查看详情！"
             if "starting easytier" in lower_line:
                 self.signals.print_text.emit(text)
                 connect_times = 0

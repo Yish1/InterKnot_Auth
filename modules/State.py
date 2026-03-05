@@ -45,7 +45,6 @@ class global_state:
         # EasyTier相关配置
         self.et_port = 51145
         self.et_secret_key = "Hello_InterKnot"
-        self.et_bind_device = True
         self.et_enable_ipv6 = False
 
         # 运行时变量
