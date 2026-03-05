@@ -4,10 +4,12 @@ from modules.State import global_state
 from modules.Working_signals import WorkerSignals
 
 import subprocess
-import os, sys
+import os
+import sys
 # import debugpy
 
 state = global_state()
+
 
 class easytier_thread(QRunnable):
     def __init__(self, main_window, mode):
@@ -16,6 +18,7 @@ class easytier_thread(QRunnable):
         self.main_window = main_window
         self.mode = mode
         self.route_added = False
+
     def check_config_exist(self):
         easytier_config_path = os.path.join(state.config_dir, "easytier.toml")
 
@@ -36,7 +39,7 @@ bind_device = {"true" if state.et_bind_device == "1" else "false"}
 dev_name = "InterKnot"
 enable_exit_node = true
 enable_ipv6 = {"true" if state.et_enable_ipv6 == "1" else "false"}
-''' 
+'''
         elif self.mode == "client":
             toml = f'''
 instance_name = "InterKnot"
@@ -53,7 +56,7 @@ uri = "wg://{state.username}:51145"
 [flags]
 dev_name = "InterKnot"
 '''
-        
+
         with open(easytier_config_path, "w") as f:
             f.write(toml)
 
@@ -68,11 +71,11 @@ dev_name = "InterKnot"
 
         if not os.path.exists(self.easytier_executable):
             self.print_to_all("错误：找不到 EasyTier Core！请重新安装绳网！")
-            self.main_window.et_process = None 
+            self.main_window.et_process = None
             self.signals.finished.emit()
             return False
         return True
-    
+
     def add_route(self):
         cmd = [
             "route",
@@ -130,8 +133,8 @@ dev_name = "InterKnot"
         self.check_config_exist()
         r = self.check_et_exist()
         if not r:
-            return # 找不到EasyTier Core
-        
+            return  # 找不到EasyTier Core
+
         self.print_to_all(f"ET: 启动绳网共享进程...")
 
         if hasattr(self.main_window, 'et_process') and self.main_window.et_process is not None:
@@ -145,8 +148,8 @@ dev_name = "InterKnot"
 
         self.main_window.et_process = subprocess.Popen(
             [self.easytier_executable,
-            "-c",
-            os.path.join(state.config_dir, "easytier.toml")],
+             "-c",
+             os.path.join(state.config_dir, "easytier.toml")],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             encoding="utf-8",
@@ -155,6 +158,7 @@ dev_name = "InterKnot"
         )
 
         failure_time = 0
+        connect_times = 0
         tun_ok = False
 
         for line in self.main_window.et_process.stdout:
@@ -162,16 +166,17 @@ dev_name = "InterKnot"
             line = line.strip()
             lower_line = line.lower()
 
-            if "network_secret" in line:
-                output = False
+            if "network_secret = " in line:
+                continue
 
             # 成功启动
             text = "ET: 共享隧道已创建成功，可切换至'隧道日志'查看详情！" if self.mode == "server" else "正在连接到绳网...可切换至'隧道日志'查看详情！"
             if "starting easytier" in lower_line:
                 self.signals.print_text.emit(text)
+                connect_times = 0
 
             if "new peer connection added" in lower_line and self.mode == "client":
-                self.signals.print_text.emit("ET: 已连接到绳网节点，即将添加路由...")
+                self.signals.print_text.emit("ET: 已连接到绳网节点，即将添加路由...\nET: 正在创建TUN网卡...\n")
                 if tun_ok and not self.route_added:
                     self.add_route()
 
@@ -181,7 +186,16 @@ dev_name = "InterKnot"
                     self.add_route()
 
             if "remote: wg://" in lower_line and self.mode == "server":
-                self.signals.print_text.emit(f"ET: {line.split('remote: wg://')[1].strip().split(':')[0]} 已连接到绳网！")
+                self.signals.print_text.emit(
+                    f"ET: {line.split('remote: wg://')[1].strip().split(':')[0]} 已连接到绳网！")
+
+            if "connecting to peer" in lower_line and self.mode == "client":
+                connect_times += 1
+                if connect_times % 5 == 0 and connect_times < 50:
+                    self.signals.print_text.emit("ET: 绳网节点无响应，仍在尝试中...")
+                
+                if connect_times >= 500:
+                    connect_times = 0
 
             if "connect to peer error" in lower_line and self.mode == "client":
                 failure_time += 1
@@ -191,9 +205,14 @@ dev_name = "InterKnot"
                     self.remove_et_route()
                     failure_time = 0
 
-            if "peer connection removed" in lower_line and self.mode == "client":
-                self.signals.print_text.emit("ET: 绳网节点失联，删除路由并重试...")
-                self.remove_et_route()
+            if "peer connection removed" in lower_line:
+                if self.mode == "client":
+                    self.signals.print_text.emit("ET: 绳网节点失联，删除路由并重试...")
+                    self.remove_et_route()
+
+                elif self.mode == "server":
+                    self.signals.print_text.emit(
+                        f"ET: {line.split('remote_addr: Some(Url { url: "wg://')[1].split(':')[0]} 已断开连接！")
 
             # 检测错误
             if any(k in lower_line for k in ("panic", "stopping", "error")) and output:
@@ -204,6 +223,4 @@ dev_name = "InterKnot"
                 if "stopping" in lower_line:
                     self.signals.finished.emit()
 
-            # 输出日志
-            if output:
-                self.signals.print_text_et.emit(line)
+            self.signals.print_text_et.emit(line)

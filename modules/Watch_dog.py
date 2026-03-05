@@ -218,7 +218,7 @@ class watch_dog(QRunnable):
                 # NLM为True，每检查self.check_internet_timeout次NLM就检查1次互联网连通性
                 if self.nlm_check_count % self.check_internet_timeout == 0 :
                     internet_ok = self.check_internet_connected()
-                    print("网络测试:", internet_ok)
+                    # print("网络测试:", internet_ok)
 
                     if nlm_ok and internet_ok:
                         # 网络正常，无需操作
