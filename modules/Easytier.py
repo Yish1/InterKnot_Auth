@@ -4,7 +4,7 @@ from modules.State import global_state
 from modules.Working_signals import WorkerSignals
 
 import subprocess
-import os 
+import os, sys
 # import debugpy
 
 state = global_state()
@@ -58,7 +58,14 @@ dev_name = "InterKnot"
             f.write(toml)
 
     def check_et_exist(self):
-        self.easytier_executable = os.path.join(os.getcwd(), "easytier", "easytier-core.exe")
+        base_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+
+        self.easytier_executable = os.path.join(
+            base_dir,
+            "easytier",
+            "easytier-core.exe"
+        )
+
         if not os.path.exists(self.easytier_executable):
             self.print_to_all("错误：找不到 EasyTier Core！请重新安装绳网！")
             self.main_window.et_process = None 

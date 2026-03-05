@@ -12,8 +12,7 @@ def read_config_file(path: str = 'config.ini') -> Dict[str, str]:
     if not os.path.exists(path):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         # 在 sac 目录里创建 config.ini
-        config_path = os.path.join("sac", "config.ini")
-        with open(config_path, "w", encoding="utf-8") as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write("")
             
         return config
