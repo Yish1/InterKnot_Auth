@@ -358,15 +358,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         username = self.lineEdit.text()
         password = self.lineEdit_2.text()
-        state.username = username
-        state.password = password
 
         if mode == "mulit":
             username = user
             password = pwd
             state.wlanuserip = ip
             current_ip = ip
-        
+
+        state.username = username
+        state.password = password
+
         ipv4_pattern = re.compile(r'^(\d{1,3}\.){3}\d{1,3}$')
         if ipv4_pattern.match(username): # z正则判断是否是ip
             is_ip = self.is_ipv4(username)
