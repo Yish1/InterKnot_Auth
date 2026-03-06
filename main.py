@@ -766,7 +766,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             capture_output=True,
             text=True,
             shell=True,
-            encoding='utf-8',
             creationflags=subprocess.CREATE_NO_WINDOW
         )
 
@@ -979,24 +978,22 @@ if __name__ == "__main__":
         sys.exit()
 
 # 编译指令
-# '''nuitka --standalone --lto=yes --clang --msvc=latest `
-# --windows-console-mode=disable `
-# --windows-uac-admin `
-# --enable-plugin=pyqt5,upx `
-# --upx-binary="F:/Programs/upx/upx.exe" `
-# --include-data-dir=ddddocr=ddddocr `
-# --include-data-dir=jre=jre `
-# --include-data-dir=easytier=easytier `
-# --include-data-file=easytier\easytier-core.exe=easytier\easytier-core.exe `
-# --include-data-file=easytier\Packet.dll=easytier\Packet.dll `
-# --include-data-file=easytier\wintun.dll=easytier\wintun.dll `
-# --include-data-file=login.jar=login.jar `
-# --include-package=modules `
-# --output-dir=SAC `
-# --windows-icon-from-ico=yish.ico `
-# --nofollow-import-to=unittest `
-# --output-filename=绳网认证.exe `
-# --remove-output `
-# --assume-yes-for-downloads `
-# --python-flag=no_docstrings `
-# main.py'''
+'''nuitka --standalone --lto=yes --clang --msvc=latest `
+--windows-console-mode=disable `
+--windows-uac-admin `
+--enable-plugin=pyqt5,upx `
+--upx-binary="F:/Programs/upx/upx.exe" `
+--include-data-dir=ddddocr=ddddocr `
+--include-data-dir=jre=jre `
+--include-data-dir=easytier=easytier `
+--include-data-file=login.jar=login.jar `
+--include-package=modules `
+--output-dir=SAC `
+--windows-icon-from-ico=yish.ico `
+--nofollow-import-to=unittest `
+--nofollow-import-to=debugpy `
+--output-filename=绳网认证.exe `
+--remove-output `
+--assume-yes-for-downloads `
+--python-flag=no_docstrings `
+main.py'''
