@@ -36,7 +36,7 @@ state = global_state()
 # debugpy.wait_for_client()  # 等待调试器连接
 
 def open_webview_worker():
-    os.environ["WEBVIEW2_USER_DATA_FOLDER"] = "webview_data"
+    os.environ["WEBVIEW2_USER_DATA_FOLDER"] = f"{tempfile.gettempdir()}/InterKnot/webview2"
 
     webview.create_window(
         "绳网隧道",
