@@ -1,51 +1,109 @@
 <div align="center">
-# SEIG-Auto-Connect
+
+# InterKnot_Auth (绳网认证)
+
+[![GitHub release](https://img.shields.io/github/v/release/Yish1/InterKnot_Auth?label=latest%20release)](https://github.com/Yish1/InterKnot/releases)
+[![GitHub all releases](https://img.shields.io/github/downloads/Yish1/InterKnot_Auth/total?label=total%20downloads)](https://github.com/Yish1/InterKnot_Auth/releases)
+[![GitHub repo size](https://img.shields.io/github/repo-size/Yish1/InterKnot_Auth)](https://github.com/Yish1/InterKnot_Auth)
 
 </div>
 
 > [!WARNING]
-> 为了保证项目的安全，请不要在大型公共平台分享，低调使用即可
+> 为了保证项目安全，请勿在大型公共平台广泛传播，建议低调使用。
 
-> [!TIP]
-> 原则上适用于所有广东的网页版esurfing<br>
-> 提示：打包参数：nuitka --standalone --lto=yes --msvc=latest --disable-ccache --windows-console-mode=disable --windows-uac-admin --enable-plugin=pyqt5,upx --upx-binary=F:\Programs\upx\upx.exe  --output-dir=SAC --windows-icon-from-ico=yish.ico --nofollow-import-to=unittest main.py<br>打包完后需要将仓库中的Pyqt5(可能需要)、ddddocr文件夹覆盖进去(必须)，(因为UPX完Pyqt5会损坏，ddddocr没被打包进去)
-## 感谢
-> 教师账号验证码获取和自动获取登陆参数参考了前辈的代码[ESurfingPy-CLI](https://github.com/Pandaft/ESurfingPy-CLI)，自己原本搞得验证码一直过不了服务器<br><br>
-> 学生端登录方式来自[ESurfingDialer](https://github.com/Rsplwe/ESurfingDialer)，用unidbg直接将加密函数为我所用，前辈的实现实在高明！我在此基础上添加了指定登录ip功能(虽然JVAV零基础，代码混乱不堪555)
->
-> 两位前辈做得已经很棒了，或许我所做的只是把他们的代码弄得凌乱不堪吧 :)
-## 使用方式
+## 项目介绍
 
-**开袋即食**<br><br>
-*学生账号*：只需要输入账号密码登录即可。<br>
-*教师账号*：只需要输入账号密码登录即可。<br><br>
-**看门狗**：两种账号实现方式不一样，学生账号需要发心跳包，就已经是一种自带看门狗，不过关机后没发包了会断网。<br>
-教师账号可使用本程序的看门狗，每300s ping一次百度，不通就重连。<br><br>
-**指定登录ip**：指定需要登录账号上网的ip，可用于路由器多拨，也可以给你朋友临时隔空联网。需要注意：如果使用学生账号指定ip，会看到心跳包报错，因为你本机不会收到服务器发给指定ip的响应，但这不影响，只是报个错给你看。<br><br>
-**多拨**：你需要有刷了带多拨插件的路由器，利用单线多拨获取多个ip，然后使用此工具的指定ip功能登录上网，教师账号能拨两次，学生账号目前此工具实现的方式只能拨一次(也可以把舍友的抢过来)，通过多拨实现网速翻倍。<br><br>
-**自动登录**：开启自动登录按钮，即可同时开启开机自启和启动后自动登录，*在当前版本1.0中，开机自启应该是不可用的，等待修复。*
+InterKnot_Auth 是一个面向校园网 ESurfing 认证场景的 Windows 桌面客户端。
 
-## 特色
-- [x] !此工具不会收集您的任何账号密码信息!
-- [x] 支持一键登录校园网账号，也可随意开热点，突破设备数限制。
-- [x] 支持账号多拨实现网速翻倍。
-- [x] 支持自动获取登录参数。
-- [x] 自动登录功能，在启动软件时自动登录保存的账号。
-- [x] 教师账号自动识别验证码，如果失败5次，需要手动输入验证码。
-- [x] 看门狗，默认每300秒检测一次网络状态，若网络不通，自动重连。
-- [x] 对保存的密码低级加密。
-- [x] 按下最小化按钮可以隐藏进托盘 。
+当前版本核心能力：
+
+- 学生/教师账号：开袋即食。
+- 指定登录 IP：适合多拨/异地临时联网；学生模式下指定ip会心跳失败(可忽略)。
+- 一键多拨：根据配置批量登录，在路由器上配置多拨可实现网速翻倍。
+- 看门狗：实时监测网卡状态，有ip且所有检测点均不可达时，自动重连。
+- 网络共享：基于EasyTier实现，可将本机网络不限量共享给其他设备。
+- 隧道连接：基于EasyTier实现，可连接至开启了共享网络的设备。
+- WebUI：http://localhost:50000 本机访问为隧道数据大屏，非本机访问为绳网下载页面。
+- 密码保存：使用机器码绑定方式进行加密保存，密码不会上传至服务器。
+- 自动登录：支持开机自启，自动登录。
+
+## 下载
+
+- 最新版本下载页：
+	https://github.com/Yish1/InterKnot_Auth/releases/latest
+
+- 全部版本下载页：
+	https://github.com/Yish1/InterKnot_Auth/releases
+    
+    [![GitHub all releases](https://img.shields.io/github/downloads/Yish1/InterKnot_Auth/total?label=total%20downloads)](https://github.com/Yish1/InterKnot_Auth/releases)
+
+    [![GitHub release downloads](https://img.shields.io/github/downloads/Yish1/InterKnot_Auth/latest/total?label=latest%20release%20downloads)](https://github.com/Yish1/InterKnot_Auth/releases)
 
 
-## TODO
-- [x] 支持更多类型账号登录(1.0已实现...) 
-      
-## 下载链接
-> https://github.com/Yish1/SEIG-Auto-Connect/releases
-## 界面图片
-> 主界面<br>
-![49c00fe212deeb7918d62e90cdda5415](https://github.com/user-attachments/assets/6b11042f-811d-4aae-a2d0-822faccc5daa)<br>
-> 最小化<br>
-![image](https://github.com/user-attachments/assets/4785e962-ed25-4ec3-b13e-a39f6ac465db)
+### 使用说明
+
+1. 从 Releases 页面下载最新压缩包安装，如遇杀毒软件查杀，请信任并还原(含提权代码以实现开机自启和隧道)。
+2. 解压后以管理员权限运行主程序。
+3. 首次运行输入账号密码，按需开启“记住密码 / 自动登录 / 看门狗”。
+4. 登录成功后，程序可最小化到托盘后台运行。
+
+## 源码编译
+
+1. 准备 Python 3.10+（建议使用虚拟环境）。
+2. 安装依赖：
+
+```bash
+pip install -r requirements.txt
+```
+
+3. 运行：
+
+```bash
+python main.py
+```
+
+
+### 打包方式（Nuitka）
+
+当前项目使用 Nuitka 在 Windows 下打包，示例命令如下：
+
+```powershell
+nuitka --standalone --lto=yes --clang --msvc=latest --windows-console-mode=disable --windows-uac-admin --enable-plugin=pyqt5,upx,anti-bloat --upx-binary="F:/Programs/upx/upx.exe(替换成本机的upx地址)" --include-data-dir=ddddocr=ddddocr --include-data-dir=jre=jre --include-data-dir=easytier=easytier --include-data-file=login.jar=login.jar --include-package=modules --nofollow-import-to=unittest --nofollow-import-to=debugpy --nofollow-import-to=pytest --nofollow-import-to=pydoc --nofollow-import-to=tkinter --nofollow-import-to=PyQt5.QtWebEngine --nofollow-import-to=PyQt5.QtNetwork --nofollow-import-to=PyQt5.QtQml --nofollow-import-to=PyQt5.QtQuick --noinclude-qt-translations --noinclude-setuptools-mode=nofollow --python-flag=no_docstrings,static_hashes --output-dir=SAC --output-filename=绳网认证.exe --windows-icon-from-ico=yish.ico --remove-output --assume-yes-for-downloads main.py
+```
+
+打包后检查项：
+
+- 确认输出目录中包含 ddddocr、jre、easytier、login.jar。
+- 启用 UPX 后出现 Pyqt5 插件异常，需手动将仓库的 Pyqt5 文件夹替换进去
+- 在纯净 Windows 环境做一次登录测试（学生/教师/隧道）。
+
+## 致谢
+
+- 登录参数处理参考了 Pandaft 的 ESurfingPy-CLI：
+	https://github.com/Pandaft/ESurfingPy-CLI
+- 学生端登录方式使用了 Rsplwe 的 ESurfingDialer：
+	https://github.com/Rsplwe/ESurfingDialer
+
+
+## 界面截图
+
+### 主界面
+![main](res/img/main.webp)
+
+### 登录参数配置
+![loginconfig](res/img/loginconfig.webp)
+
+### 多拨
+![mulitlogin](res/img/mulitlogin.webp)
+
+### 隧道配置
+![easytier](res/img/easytier.webp)
+
+### 隧道连接
+![etconnect](res/img/etconnect.webp)
+
+
+### WebUI
+![share](res/img/share.webp)
 
 
