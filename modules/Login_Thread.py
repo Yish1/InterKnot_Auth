@@ -18,13 +18,14 @@ from modules.Working_signals import WorkerSignals
 state = global_state()
 
 class login_Thread(QRunnable):
-    def __init__(self):
+    def __init__(self, current_ip):
         super().__init__()
+        self.current_ip = current_ip
         self.signals = WorkerSignals()
 
     def run(self):
         self.signals.print_text.emit(
-            "即将登录: " + state.username + " IP: " + state.wlanuserip)
+            "即将登录: " + state.username + " IP: " + self.current_ip)
 
         session = requests.session()
 
@@ -44,14 +45,14 @@ class login_Thread(QRunnable):
         # 构造请求头和Cookie
         headers = {
             "Origin": f"http://{state.esurfingurl}",
-            "Referer": f"http://{state.esurfingurl}/qs/index_gz.jsp?wlanacip={state.wlanacip}&wlanuserip={state.wlanuserip}",
+            "Referer": f"http://{state.esurfingurl}/qs/index_gz.jsp?wlanacip={state.wlanacip}&wlanuserip={self.current_ip}",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0",
         }
 
         # 构造请求参数
         post_data = {
             'loginKey': login_key,
-            'wlanuserip': state.wlanuserip,
+            'wlanuserip': self.current_ip,
             'wlanacip': state.wlanacip
         }
 
@@ -93,7 +94,7 @@ class login_Thread(QRunnable):
 
     # 获取验证码图片URL
     def get_captcha_image_url(self, session):
-        page_url = f"http://{state.esurfingurl}/qs/index_gz.jsp?wlanacip={state.wlanacip}&wlanuserip={state.wlanuserip}"
+        page_url = f"http://{state.esurfingurl}/qs/index_gz.jsp?wlanacip={state.wlanacip}&wlanuserip={self.current_ip}"
         headers = {
             "Origin": f"http://{state.esurfingurl}",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0",

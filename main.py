@@ -494,11 +494,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         username = self.comboBox_username.currentText()
         password = self.lineEdit_2.text()
+        current_ip = state.wlanuserip
 
         if mode == "mulit":
             username = user
             password = pwd
-            state.wlanuserip = ip
             current_ip = ip
 
         state.username = username
@@ -531,7 +531,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # 判断是否以 't' 开头，仅适用于SEIG
         if not username.startswith('t') and state.login_mode == 0:
             self.login_jar(username, password,
-                           state.wlanuserip, state.wlanacip)
+                           current_ip, state.wlanacip)
             state.jar_login = True
             return
 
@@ -607,7 +607,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.init_save_password()
                 self.update_config("username", username)
 
-        login_thread = login_Thread()
+        login_thread = login_Thread(current_ip=current_ip)
         login_thread.signals.enable_buttoms.connect(
             self.enable_buttoms)
         login_thread.signals.thread_login.connect(

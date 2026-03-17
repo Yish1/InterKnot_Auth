@@ -125,6 +125,9 @@ class watch_dog(QRunnable):
                     continue  # 被重定向，尝试下一个
 
                 if r.status_code == expected_status:
+
+                    # 恢复重连冷却
+                    self.reconnect_cooldown = 15
                     return True  # 有一个通就算通
 
             except requests.RequestException:
@@ -148,6 +151,9 @@ class watch_dog(QRunnable):
             self.last_reconnect_ts = now
             try:
                 self.signals.thread_login.emit()
+
+                # 每次重连增加冷却时间
+                self.reconnect_cooldown = min(self.reconnect_cooldown + 30, 600)  # 最多10分钟冷却
                 return True
             except Exception as e:
                 self.signals.print_text.emit(f"看门狗:登录失败: {e}")
@@ -218,7 +224,7 @@ class watch_dog(QRunnable):
                 # NLM为True，每检查self.check_internet_timeout次NLM就检查1次互联网连通性
                 if self.nlm_check_count % self.check_internet_timeout == 0 :
                     internet_ok = self.check_internet_connected()
-                    # print("网络测试:", internet_ok)
+                    print("网络测试:", internet_ok)
 
                     if nlm_ok and internet_ok:
                         # 网络正常，无需操作

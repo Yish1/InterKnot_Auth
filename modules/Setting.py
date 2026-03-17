@@ -259,7 +259,7 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
                     return
 
                 if index < len(state.mulit_info) - 1:
-                    QTimer.singleShot(20, lambda: start_login(index + 1))
+                    QTimer.singleShot(50, lambda: start_login(index + 1))
 
                 # elif index == len(state.mulit_info) - 1:
 
