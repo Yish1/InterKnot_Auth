@@ -55,5 +55,8 @@ class UpdateThread(QRunnable):
                 return
         except:
             pass
-
-        self.signals.finished.emit()
+        
+        try:
+            self.signals.finished.emit()
+        except:
+            pass

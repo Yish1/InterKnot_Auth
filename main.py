@@ -239,13 +239,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def init_save_password(self, checked=True):
         if checked and state.save_pwd == '1':
             # 新加密流程：保存hashed机器码到password项，使用hashed机器码作为密钥，真密码加密保存到windows凭据管理器，解密时调用
-            aes_key = SecurityManager.get_encryption_key()
-            self.update_config("password", aes_key.hex())
+            try:
+                aes_key = SecurityManager.get_encryption_key()
+                self.update_config("password", aes_key.hex())
 
-            password = self.lineEdit_2.text()
+                password = self.lineEdit_2.text()
 
-            username = self.comboBox_username.currentText()
-            SecurityManager.save_password(username, password)
+                username = self.comboBox_username.currentText()
+                SecurityManager.save_password(username, password)
+
+            except Exception as e:
+                if hasattr(self, "auto_connect_flag_for_pwd") and self.auto_connect_flag_for_pwd:  # 忽略开机自启时出现的错误
+                    self.auto_connect_flag_for_pwd = False
+                    return
+                # 1312, 'credwrite', '指定的登录会话不存在。可能已被终止
+                e = f"保存密码失败：{e}\n请将前面失败的原因发送issue" # 开机自启时，密码会保存失败一次，后续一般没有问题
+                self.write_to_log(e)
+                self.update_list(e)
 
         elif checked == False:
             all_account = CredentialManager.list_usernames("InterKnot")
@@ -353,6 +363,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.read_config()
         if state.auto_connect == "1":
             self.update_list("正在尝试自动连接...")
+            self.auto_connect_flag_for_pwd = True
 
             # 如果登录的方式是隧道，且开启了自动共享，将不会自动登录
             if self.is_ipv4(state.username):
@@ -1100,26 +1111,20 @@ if __name__ == "__main__":
         sys.exit()
 
 # # 编译指令
-# nuitka --standalone --lto=yes --clang --msvc=latest `
-
-# Windows 设置
-# --windows-console-mode=disable `
+# nuitka `
+# --standalone `
+# --lto=yes `
+# --clang `
+# --msvc=latest `
 # --windows-uac-admin `
-
-# # 插件
-# --enable-plugin=pyqt5,upx,anti-bloat `
-# --upx-binary="F:/Programs/upx/upx.exe" `
-
-# # 数据文件
+# --windows-console-mode=disable `
+# --enable-plugin=pyqt5,upx `
+# --upx-binary="F:\Programs\upx\upx.exe" `
 # --include-data-dir=ddddocr=ddddocr `
 # --include-data-dir=jre=jre `
 # --include-data-dir=easytier=easytier `
 # --include-data-file=login.jar=login.jar `
-
-# # Python 模块
 # --include-package=modules `
-
-# # 排除模块
 # --nofollow-import-to=unittest `
 # --nofollow-import-to=debugpy `
 # --nofollow-import-to=pytest `
@@ -1129,19 +1134,12 @@ if __name__ == "__main__":
 # --nofollow-import-to=PyQt5.QtNetwork `
 # --nofollow-import-to=PyQt5.QtQml `
 # --nofollow-import-to=PyQt5.QtQuick `
-
-# # 体积优化
 # --noinclude-qt-translations `
 # --noinclude-setuptools-mode=nofollow `
 # --python-flag=no_docstrings,static_hashes `
-
-# # 输出
 # --output-dir=SAC `
 # --output-filename=绳网认证.exe `
 # --windows-icon-from-ico=yish.ico `
-
-# # 其它
 # --remove-output `
 # --assume-yes-for-downloads `
-
 # main.py
