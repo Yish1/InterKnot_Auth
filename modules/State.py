@@ -64,6 +64,7 @@ class global_state:
         self.mulit_login_active = False
         self.settings_flag = None
         self.webui_thread = None
+        self.login_in_progress = False
 
         # 初始化线程池
         self.threadpool = QThreadPool()
