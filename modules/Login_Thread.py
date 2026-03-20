@@ -109,20 +109,21 @@ class login_Thread(QRunnable):
             return None
 
         try:
-            url = re.search(r'/common/image_code\.jsp\?time=\d+',
-                            str(response.content)).group()
-
-            if url:
-                image_url = f'http://{state.esurfingurl}{url}'
-                self.signals.print_text.emit(f"获取验证码图片URL: {image_url}")
-                return image_url
-            else:
+            match = re.search(
+                r'/common/image_code\.jsp\?time=\d+',
+                response.text or ""
+            )
+            if not match:
                 self.signals.print_text.emit("未找到验证码图片")
                 return None
 
+            image_url = f'http://{state.esurfingurl}{match.group()}'
+            self.signals.print_text.emit(f"获取验证码图片URL: {image_url}")
+            return image_url
+
         except Exception as e:
             self.signals.print_text.emit(f"解析页面失败：{e}")
-            self.run_settings()
+            self.signals.run_settings.emit()
             return None
     # 自动识别验证码
 

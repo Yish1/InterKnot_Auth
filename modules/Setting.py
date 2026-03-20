@@ -350,6 +350,7 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
                 self.Main_window.update_list(
                     f"没有从重定向的链接中获取到参数，请检查网线连接，或者是否已经能够上网了？{e}")
             else:
+                self.Main_window.update_list(f"自动获取失败，请检查以下项目\n\n①确保没有连接手机热点\n②已经登录过校园网需先断开\n③检查是否开启网络代理\n④检查网线连接\n{e}")
                 self.Main_window.show_message(message="自动获取失败，请检查以下项目\n\n①确保没有连接手机热点\n②已经登录过校园网需先断开\n③检查是否开启网络代理\n④检查网线连接", title="错误")
             self.pushButton.setEnabled(False)
 

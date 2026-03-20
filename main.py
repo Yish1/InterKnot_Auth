@@ -68,11 +68,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.tray_icon.show()
 
         # 启动前运行
-        self.update_list("欢迎加入绳网（InterKnot）！")
-        self.read_config()
-        self.get_password()
-        self.add_account_to_combox()
-        self.try_auto_connect()
+        try:
+            self.init_log()
+            self.update_list(f"欢迎加入绳网（InterKnot）！{a}")
+            self.read_config()
+            self.get_password()
+            self.add_account_to_combox()
+            self.try_auto_connect()
+        except Exception as e:
+            e = f"启动时发生严重错误：请尝试清除配置文件、重装程序，或者联系开发者(Github/Yish1)。\n\n错误信息：{str(e)}"
+            self.write_to_log(e)
+            self.show_message(e, "错误")
+            sys.exit()
 
         # 初始化Setting
         self.settings_window = settingsWindow(self)
@@ -112,6 +119,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # 启动后运行
         self.start_easytier()
+
+    def init_log(self):
+        with open(state.log_path, "w", encoding="utf-8") as f:
+            f.write("")
+
+    def write_to_log(self, text):
+        with open(state.log_path, "a", encoding="utf-8") as f:
+            f.write(text + "\n")
 
     def show_combo_menu(self, pos):
         view = self.comboBox_username.view()
@@ -731,6 +746,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.listWidget.addItem(text)
         self.listWidget.setCurrentRow(self.listWidget.count() - 1)
         print(text)
+        self.write_to_log(text)
 
     def update_et_list(self, text):
 

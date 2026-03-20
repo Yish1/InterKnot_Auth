@@ -16,7 +16,7 @@ class global_state:
             return
         self._initialized = True
 
-        self.version = 1.64
+        self.version = 1.65
 
         # 获取用户 AppData\Roaming 路径
         self.config_path = None
@@ -24,6 +24,7 @@ class global_state:
         appdata_dir = os.getenv("APPDATA")
         self.config_dir = os.path.join(appdata_dir, "SAC")
         self.config_path = os.path.join(self.config_dir, "config.ini")
+        self.log_path = os.path.join(self.config_dir, "log.txt")
 
         # 配置类变量
         self.first_run = 1
