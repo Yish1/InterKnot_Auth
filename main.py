@@ -3,8 +3,6 @@ import os
 import sys
 import ctypes
 import requests
-import rsa
-import json
 import time
 import msvcrt
 import ipaddress
@@ -14,6 +12,7 @@ import threading
 import subprocess
 import tempfile
 import shutil
+import traceback
 import webbrowser as web
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QSystemTrayIcon, QMenu, QAction, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
@@ -76,9 +75,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.add_account_to_combox()
             self.try_auto_connect()
         except Exception as e:
-            e = f"启动时发生严重错误：请尝试清除配置文件、重装程序，或者联系开发者(Github/Yish1)。\n\n错误信息：{str(e)}"
-            self.write_to_log(e)
-            self.show_message(e, "错误")
+            trace = traceback.format_exc()
+            detail = (
+                "启动时发生严重错误：请尝试清除配置文件、重装程序，或者联系开发者(Github/Yish1)。"
+                f"\n\n详细信息：\n{trace}"
+            )
+            self.write_to_log(detail)
+            self.show_message(detail, "错误")
             sys.exit()
 
         # 初始化Setting
@@ -257,7 +260,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.update_list(e)
 
         elif checked == False:
-            all_account = CredentialManager.list_usernames("InterKnot")
+            all_account = DatManager.list_usernames()
             for account in all_account:
                 SecurityManager.delete_password(account)
             self.update_config("password", "")
@@ -269,7 +272,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # 清除列表
         self.comboBox_username.clear()
 
-        accounts = CredentialManager.list_usernames(service="InterKnot")
+        accounts = DatManager.list_usernames()
         if accounts is not None:  # 将保存的账号添加到下拉框中
             for username in accounts:
                 self.comboBox_username.addItem(username)
@@ -543,16 +546,20 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 return
             else:
                 self.update_list("输的啥玩意啊？IP地址有这样写的吗？")
+                state.stop_retry_thread = True
                 return
 
         if state.esurfingurl == "0.0.0.0:0" or state.esurfingurl == "自动获取失败,请检查网线连接":
             self.run_settings()
             self.update_list("请先获取或手动填写参数！")
+            state.stop_retry_thread = True
             return
         if not username:
+            state.stop_retry_thread = True
             self.update_list("账号都不输入登录个锤子啊！")
             return
         if not password or password == "0":
+            state.stop_retry_thread = True
             self.update_list("你账号没有密码的吗？？？")
             return
 
@@ -1028,7 +1035,8 @@ class login_Retry_Thread(QRunnable):
 
         if state.connected == False:
             state.retry_thread_started = False
-            self.signals.print_text.emit("已多次尝试无法获取验证码，这一般不是验证码的问题，请重试或者反馈")
+            message = "自动登录失败，已达到最大重试次数！" if state.stop_retry_thread == False else "自动登录已取消！"
+            self.signals.print_text.emit(message)
 
         self.signals.enable_buttoms.emit(1)
         self.signals.finished.emit()
@@ -1106,7 +1114,23 @@ if __name__ == "__main__":
 
     except Exception as e:
         user32 = ctypes.windll.user32
-        user32.MessageBoxW(None, f"程序启动时遇到严重错误:{e}", "Warning!", 0x30)
+        trace = traceback.format_exc()
+        crash_log = os.path.join(state.config_dir, "startup_crash.log")
+
+        try:
+            with open(crash_log, "w", encoding="utf-8") as f:
+                f.write("[InterKnot Startup Crash]\n")
+                f.write(f"Message: {e}\n\n")
+                f.write(trace)
+        except Exception:
+            crash_log = "写入失败"
+
+        detail = (
+            f"程序启动时遇到严重错误\n\n"
+            f"详细堆栈:\n{trace}\n"
+            f"崩溃日志: {crash_log}"
+        )
+        user32.MessageBoxW(None, detail, "Warning!", 0x30)
         sys.exit()
 
 # # 编译指令

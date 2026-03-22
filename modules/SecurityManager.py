@@ -3,14 +3,43 @@ import hashlib
 from Crypto.Cipher import AES
 import base64
 import os
-import keyring
 import winreg
 import ctypes
 from ctypes import wintypes
+from modules import global_state, Config_Manager
+
+state = global_state()
+
+
+pwd_path = os.path.join(state.config_dir, "Secret.dat")
+
+class DatManager:
+    @staticmethod
+    def read_file():
+        return Config_Manager.read_config_file(pwd_path)
+
+    @staticmethod
+    def get_password(username):
+        config = DatManager.read_file()
+        if username in config:
+            return config[username]
+        return None
+
+    @staticmethod
+    def set_password(username, password):
+        Config_Manager.update_entry(username, password, pwd_path)
+
+    @staticmethod
+    def delete_password(username):
+        Config_Manager.update_entry(username, None, pwd_path)
+
+    @staticmethod
+    def list_usernames():
+        config = DatManager.read_file()
+        return [username for username in config.keys()]
 
 
 class SecurityManager:
-
     @staticmethod
     def get_machine_guid():
         try:
@@ -77,14 +106,14 @@ class SecurityManager:
 
         encrypted_password = SecurityManager.encrypt(password, key)
 
-        keyring.set_password("InterKnot", username, encrypted_password)
+        DatManager.set_password(username, encrypted_password)
         print(f"Password for {username} saved securely.")
 
     @staticmethod
     def get_password(username: str) -> str:
         key = SecurityManager.get_encryption_key()
 
-        encrypted_password = keyring.get_password("InterKnot", username)
+        encrypted_password = DatManager.get_password(username)
 
         if encrypted_password is None:
             return None
@@ -94,7 +123,7 @@ class SecurityManager:
                 encrypted_password, key)
         except Exception as e:
             print(f"Error decrypting password for {username}: {e}")
-            keyring.delete_password("InterKnot", username)
+            DatManager.delete_password(username)
             return ""
 
         return decrypted_password
@@ -102,68 +131,7 @@ class SecurityManager:
     @staticmethod
     def delete_password(username: str):
         try:
-            keyring.delete_password("InterKnot", username)
+            DatManager.delete_password(username)
             print(f"Password for {username} deleted.")
         except:
             pass
-
-
-class CredentialManager:
-
-    advapi32 = ctypes.WinDLL("Advapi32.dll")
-
-    class CREDENTIAL(ctypes.Structure):
-        _fields_ = [
-            ("Flags", wintypes.DWORD),
-            ("Type", wintypes.DWORD),
-            ("TargetName", wintypes.LPWSTR),
-            ("Comment", wintypes.LPWSTR),
-            ("LastWritten", wintypes.FILETIME),
-            ("CredentialBlobSize", wintypes.DWORD),
-            ("CredentialBlob", ctypes.c_void_p),
-            ("Persist", wintypes.DWORD),
-            ("AttributeCount", wintypes.DWORD),
-            ("Attributes", ctypes.c_void_p),
-            ("TargetAlias", wintypes.LPWSTR),
-            ("UserName", wintypes.LPWSTR),
-        ]
-
-    PCREDENTIAL_PTR = ctypes.POINTER(ctypes.POINTER(CREDENTIAL))
-
-    CredEnumerate = advapi32.CredEnumerateW
-    CredFree = advapi32.CredFree
-
-    CredEnumerate.argtypes = [
-        wintypes.LPCWSTR,
-        wintypes.DWORD,
-        ctypes.POINTER(wintypes.DWORD),
-        ctypes.POINTER(PCREDENTIAL_PTR),
-    ]
-
-    CredFree.argtypes = [ctypes.c_void_p]
-
-    @staticmethod
-    def list_usernames(service=None):
-        """返回凭据管理器中的用户名列表，如 ['a','b']"""
-        count = wintypes.DWORD()
-        creds = CredentialManager.PCREDENTIAL_PTR()
-        users = []
-
-        if CredentialManager.CredEnumerate(None, 0, ctypes.byref(count), ctypes.byref(creds)):
-            for i in range(count.value):
-                cred = creds[i].contents
-                target = cred.TargetName
-                username = cred.UserName
-
-                # service 过滤（包含匹配）
-                if username and (service is None or (target and service in target)):
-                    users.append(username)
-
-            CredentialManager.CredFree(creds)
-
-        # 去重
-        return list(dict.fromkeys(users))
-
-
-# a = CredentialManager.list_usernames(service="InterKnot")
-# print(a)
