@@ -41,6 +41,13 @@ class DatManager:
 
 class SecurityManager:
     @staticmethod
+    def write_to_log(text):
+        log_path = os.path.join(state.config_dir, "log.txt")
+        with open(log_path, "a") as log_file:
+            log_file.write(f"{text}\n")
+        print(text)
+
+    @staticmethod
     def get_machine_guid():
         try:
             key = winreg.OpenKey(
@@ -67,7 +74,7 @@ class SecurityManager:
         salt = "InterKnot2026"
 
         key = hashlib.sha256((guid + salt).encode()).digest()
-        # print("Encryption key:", key.hex())
+        # write_to_log("Encryption key:", key.hex())
 
         return key
 
@@ -97,7 +104,7 @@ class SecurityManager:
             return data.decode()
         
         except Exception as e:
-            print(f"Failed to decrypt token: {e}")
+            SecurityManager.write_to_log(f"Failed to decrypt token: {e}")
             return ""
 
     @staticmethod
@@ -107,7 +114,7 @@ class SecurityManager:
         encrypted_password = SecurityManager.encrypt(password, key)
 
         DatManager.set_password(username, encrypted_password)
-        print(f"Password for {username} saved securely.")
+        SecurityManager.write_to_log(f"Password for {username} saved successfully.")
 
     @staticmethod
     def get_password(username: str) -> str:
@@ -122,7 +129,7 @@ class SecurityManager:
             decrypted_password = SecurityManager.decrypt(
                 encrypted_password, key)
         except Exception as e:
-            print(f"Error decrypting password for {username}: {e}")
+            SecurityManager.write_to_log(f"Error decrypting password for {username}: {e}")
             DatManager.delete_password(username)
             return ""
 
@@ -132,6 +139,6 @@ class SecurityManager:
     def delete_password(username: str):
         try:
             DatManager.delete_password(username)
-            print(f"Password for {username} deleted.")
+            SecurityManager.write_to_log(f"Password for {username} deleted.")
         except:
             pass
