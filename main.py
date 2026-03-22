@@ -92,7 +92,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.checkBox_2.clicked.connect(lambda: self.update_config(
             "auto_connect", 1 if self.checkBox_2.isChecked() else 0) or (
-                self.update_list("开机将自启，并自动登录，需要记住密码\n看门狗每10分钟检测一次网络连接情况\n下次自动登录成功时，将启动看门狗") if self.checkBox_2.isChecked() else None) or (
                 self.checkBox.setChecked(True) if self.checkBox_2.isChecked() else None) or (
                     self.add_to_startup() if self.checkBox_2.isChecked() else self.add_to_startup(1)) or (self.update_config("save_pwd", 1))
         )
@@ -127,6 +126,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def write_to_log(self, text):
         with open(state.log_path, "a", encoding="utf-8") as f:
             f.write(text + "\n")
+        print(text)
 
     def show_combo_menu(self, pos):
         view = self.comboBox_username.view()
@@ -253,8 +253,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     self.auto_connect_flag_for_pwd = False
                     return
                 # 1312, 'credwrite', '指定的登录会话不存在。可能已被终止
-                e = f"保存密码失败：{e}\n请将前面失败的原因发送issue" # 开机自启时，密码会保存失败一次，后续一般没有问题
-                self.write_to_log(e)
+                e = f"保存密码失败：{e}\n如果当前程序是开机自启的，可以稍等一会，或尝试关闭重开，如无法解决，请带上报错发送issues" # 开机自启时，密码会保存失败一次，后续一般没有问题
                 self.update_list(e)
 
         elif checked == False:
@@ -354,9 +353,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         r = run(cmd)
 
         if r.returncode == 0:
-            self.update_list(f"已添加 {app_path} 开机自启")
+            self.update_list(f"已添加 {app_path} 开机自启，并自动登录。")
+
         else:
-            self.update_list(f"创建失败：{r.stderr or r.stdout}\n尝试以管理员权限运行软件")
+            self.update_list(f"创建开机自启失败：{r.stderr or r.stdout}\n尝试以管理员权限运行软件")
 
     def try_auto_connect(self):
 
@@ -761,7 +761,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.listWidget.addItem(text)
         self.listWidget.setCurrentRow(self.listWidget.count() - 1)
-        print(text)
         self.write_to_log(text)
 
     def update_et_list(self, text):
