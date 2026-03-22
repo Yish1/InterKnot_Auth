@@ -41,7 +41,14 @@ class login_Thread(QRunnable):
             "rand": code
         }
 
-        login_key = self.encrypt_rsa(json.dumps(login_data), pub_key)
+        # Use compact JSON to keep RSA plaintext within PKCS#1 v1.5 block size.
+        login_payload = json.dumps(login_data, ensure_ascii=False, separators=(",", ":"))
+        try:
+            login_key = self.encrypt_rsa(login_payload, pub_key)
+        except OverflowError as e:
+            self.signals.print_text.emit(f"RSA加密失败{e}")
+            state.login_thread_finished = True
+            return
         # 构造请求头和Cookie
         headers = {
             "Origin": f"http://{state.esurfingurl}",
@@ -80,6 +87,12 @@ class login_Thread(QRunnable):
 
     def encrypt_rsa(self, message, pub_key):
         message_bytes = message.encode('utf-8')
+        # PKCS#1 v1.5 padding overhead is 11 bytes.
+        max_len = rsa.common.byte_size(pub_key.n) - 11
+        if len(message_bytes) > max_len:
+            raise OverflowError(
+                f"{len(message_bytes)} bytes needed for message, but there is only space for {max_len}"
+            )
         encrypted = rsa.encrypt(message_bytes, pub_key)
         return binascii.hexlify(encrypted).decode('utf-8')
 
