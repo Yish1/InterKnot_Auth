@@ -16,7 +16,7 @@ class global_state:
             return
         self._initialized = True
 
-        self.version = 1.65
+        self.version = 1.66
 
         # 获取用户 AppData\Roaming 路径
         self.config_path = None

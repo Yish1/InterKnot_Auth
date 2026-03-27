@@ -230,9 +230,16 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
 
     def mulit_login_now(self):
 
+        state.mulit_status = {}
         state.mulit_info = {}
         a = self.read_config("")
         # {'0': {'1': '192.168.1.1', '2': '123123', '3': ''}, '1': {'1': '', '2': '', '3': ''}}
+
+        ips = [info.get('1', '').strip() for info in state.mulit_info.values() if info.get('1', '').strip()]
+        if len(ips) != len(set(ips)):
+            self.show_message("存在重复IP，请修改后再进行多拨。\n\n多拨并不是账号都登录到一个IP上就行了，需要路由器支持多拨功能，将账号登录到路由器虚拟的多个WAN口上的不同IP，通过负载均衡实现网速翻倍。", "提示")
+            print("存在重复IP，请修改后再进行多拨。")
+            return
 
         # 定义登录的任务
         def login_task(key):

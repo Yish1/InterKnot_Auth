@@ -123,10 +123,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.start_easytier()
 
     def init_log(self):
+        os.makedirs(state.config_dir, exist_ok=True)
         with open(state.log_path, "w", encoding="utf-8") as f:
             f.write("")
 
     def write_to_log(self, text):
+        os.makedirs(state.config_dir, exist_ok=True)
         with open(state.log_path, "a", encoding="utf-8") as f:
             f.write(text + "\n")
         print(text)
@@ -230,7 +232,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         aes_key = SecurityManager.get_encryption_key()
 
-        if state.password != aes_key.hex():
+        if state.password != aes_key.hex() and state.password != "":
             self.update_list(
                 "检测到设备已更换或未保存有效密码，请重新输入密码！\nInterKnot_Auth 密码采用机器指纹加密，与设备绑定，设备变化将无法解密")
 
@@ -596,11 +598,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 matched_key = next((key for key in error_msg if key in status), None)
 
                 if matched_key:
-                    state.stop_watch_dog = True
-                    state.stop_retry_thread = True
-                    if getattr(state, 'retry_thread_started', False):
-                        self.update_list(f"由于{matched_key},取消自动重试")
-                    return
+                    if mode != "mulit":
+                        state.stop_watch_dog = True
+                        state.stop_retry_thread = True
+                        if getattr(state, 'retry_thread_started', False):
+                            self.update_list(f"由于{matched_key},取消自动重试")
+                        return
                 
                 if data['resultInfo'] == "验证码错误":
                     if mode == "mulit":
@@ -1047,6 +1050,7 @@ class login_Retry_Thread(QRunnable):
 
 if __name__ == "__main__":
     try:
+        os.makedirs(state.config_dir, exist_ok=True)
         # 防止重复运行
         lock_file = os.path.expanduser("~/.InterKnot.lock")
         fd = os.open(lock_file, os.O_RDWR | os.O_CREAT)
@@ -1134,6 +1138,7 @@ if __name__ == "__main__":
             f"崩溃日志: {crash_log}"
         )
         user32.MessageBoxW(None, detail, "Warning!", 0x30)
+        print(detail)
         sys.exit()
 
 # # 编译指令
