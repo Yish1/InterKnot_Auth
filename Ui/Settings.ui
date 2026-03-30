@@ -79,6 +79,16 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="checkBox_autoCheckIP">
+            <property name="toolTip">
+             <string>自动登录开启时，每次都重新获取一次登录信息。这可能适用于在学校不同地方接入网络时IP变化的问题。</string>
+            </property>
+            <property name="text">
+             <string>每次自动登录都获取一次</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QLabel" name="label">
             <property name="text">
              <string>登录URL</string>

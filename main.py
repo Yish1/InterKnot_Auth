@@ -73,7 +73,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.read_config()
             self.get_password()
             self.add_account_to_combox()
-            self.try_auto_connect()
         except Exception as e:
             trace = traceback.format_exc()
             detail = (
@@ -120,6 +119,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         view.customContextMenuRequested.connect(self.show_combo_menu)
 
         # 启动后运行
+        self.try_auto_connect()
         self.start_easytier()
 
     def init_log(self):
@@ -366,6 +366,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def try_auto_connect(self):
 
         self.read_config()
+
+        # 直接自动获取覆盖登录IP信息，设为1时生效。
+        if state.auto_update_userip == "1":
+            settingsWindow.get_default(self.settings_window)
         if state.auto_connect == "1":
             self.update_list("正在尝试自动连接...")
             self.auto_connect_flag_for_pwd = True

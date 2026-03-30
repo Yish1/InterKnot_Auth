@@ -45,6 +45,8 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
         self.pushButton_7.clicked.connect(self.clear_config)
         self.pushButton_8.clicked.connect(
             lambda: os.startfile(state.config_dir))
+        self.checkBox_autoCheckIP.clicked.connect(lambda: self.Main_window.update_config(
+            "auto_update_userip", 1 if self.checkBox_autoCheckIP.isChecked() else 0) or (self.Main_window.update_list("将在下次自动登录时重新获取IP") if self.checkBox_autoCheckIP.isChecked() else self.Main_window.update_list("自动更新登录IP已关闭")))
 
         self.get_config_value()
 
