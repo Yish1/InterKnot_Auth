@@ -365,12 +365,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def try_auto_connect(self):
 
-        self.read_config()
-
         # 直接自动获取覆盖登录IP信息，设为1时生效。
         if state.auto_update_userip == "1":
             self.update_list("正在重新获取登录IP......")
             settingsWindow.get_default(self.settings_window)
+            update_entry('esurfingurl', str(state.esurfingurl), state.config_path)
+            update_entry('wlanuserip', str(state.wlanuserip) , state.config_path)
+            update_entry('wlanacip', str(state.wlanacip), state.config_path)
+
+        self.read_config()
+
         if state.auto_connect == "1":
             self.update_list("正在尝试自动连接...")
             self.auto_connect_flag_for_pwd = True
