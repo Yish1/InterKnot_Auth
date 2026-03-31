@@ -327,6 +327,7 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
             f"隧道端口: {state.et_port} | WebUI: {state.et_webui_port}")
         self.checkBox_2.setChecked(True if state.et_enable_ipv6 else False)
         self.checkBox.setChecked(True if state.et_enable_webdl else False)
+        self.checkBox_autoCheckIP.setChecked(True if state.auto_update_userip == "1" else False)
 
     def save_config(self):
         self.Main_window.update_config("esurfingurl", self.lineEdit.text())
