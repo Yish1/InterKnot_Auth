@@ -221,7 +221,7 @@ dev_name = "InterKnot"
 
                 elif self.mode == "server":
                     self.signals.print_text.emit(
-                        f"ET: {line.split('remote_addr: Some(Url { url: "wg://')[1].split(':')[0]} 已断开连接！")
+                        f"""ET: {line.split('remote_addr: Some(Url { url: "wg://')[1].split(':')[0]} 已断开连接！""")
 
             # 检测错误
             if any(k in lower_line for k in ("panic", "stopping", "error")) and output:

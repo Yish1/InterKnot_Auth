@@ -9,6 +9,7 @@ from PyQt5.QtCore import QThreadPool, pyqtSignal, QRunnable, QObject, QTimer, QM
 from Ui.Main_UI import Ui_MainWindow  # 导入ui文件
 from Ui.Settings import Ui_sac_settings
 from modules.SecurityManager import *
+from modules.Get_Userip_Thread import Get_Userip_Thread
 
 from modules.State import global_state
 
@@ -45,6 +46,7 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
         self.pushButton_7.clicked.connect(self.clear_config)
         self.pushButton_8.clicked.connect(
             lambda: os.startfile(state.config_dir))
+        self.checkBox_autoCheckIP.clicked.connect(lambda: self.Main_window.update_list("将在每次自动登录前重新获取IP") if self.checkBox_autoCheckIP.isChecked() else self.Main_window.update_list("自动更新登录IP已关闭"))
 
         self.get_config_value()
 
@@ -316,6 +318,7 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
         self.lineEdit_3.setText(state.wlanuserip)
         # 获取本地网卡IP
         local_ip = self.get_lan_ip()
+        self.comboBox.clear()
         self.comboBox.addItem(local_ip if isinstance(
             local_ip, str) else local_ip[0])
         self.comboBox.addItem("IP仅供参考，分享请使用物理IP")
@@ -325,6 +328,7 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
             f"隧道端口: {state.et_port} | WebUI: {state.et_webui_port}")
         self.checkBox_2.setChecked(True if state.et_enable_ipv6 else False)
         self.checkBox.setChecked(True if state.et_enable_webdl else False)
+        self.checkBox_autoCheckIP.setChecked(True if state.auto_update_userip == "1" else False)
 
     def save_config(self):
         self.Main_window.update_config("esurfingurl", self.lineEdit.text())
@@ -335,31 +339,59 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
             "et_enable_ipv6", 1 if self.checkBox_2.isChecked() else 0)
         self.Main_window.update_config(
             "et_enable_webdl", 1 if self.checkBox.isChecked() else 0)
+        self.Main_window.update_config(
+            "auto_update_userip", 1 if self.checkBox_autoCheckIP.isChecked() else 0)
         self.close()
 
-    def get_default(self):
-        try:
-            response = requests.get(url="http://189.cn/", timeout=2, proxies={"http": None, "https": None})
-            state.esurfingurl = re.search(
-                "http://(.+?)/", response.url).group(1)
-            state.wlanacip = re.search(
-                "wlanacip=(.+?)&", response.url).group(1)
-            state.wlanuserip = re.search(
-                "wlanuserip=(.+)", response.url).group(1)
-            self.get_config_value()
-            try:
-                self.pushButton.setEnabled(True)
+    def get_default(self, mode=""):
+        if isinstance(mode, bool):
+            mode = ""
+        def get_ip_status(result=1):
+            if result == 1:
                 self.Main_window.update_list("成功获取参数")
-            except:
-                pass
-        except Exception as e:
-            if "'NoneType' object has no attribute 'group'" in str(e):
-                self.Main_window.update_list(
-                    f"没有从重定向的链接中获取到参数，请检查网线连接，或者是否已经能够上网了？{e}")
+                self.pushButton_3.setEnabled(True)
+                self.get_config_value()
+                self.pushButton_3.setText("自动获取")
+            
             else:
-                self.Main_window.update_list(f"自动获取失败，请检查以下项目\n\n①确保没有连接手机热点\n②已经登录过校园网需先断开\n③检查是否开启网络代理\n④检查网线连接\n{e}")
-                self.Main_window.show_message(message="自动获取失败，请检查以下项目\n\n①确保没有连接手机热点\n②已经登录过校园网需先断开\n③检查是否开启网络代理\n④检查网线连接", title="错误")
-            self.pushButton.setEnabled(False)
+                self.pushButton_3.setEnabled(True)
+                if "nomsgbox" not in mode:
+                    self.Main_window.show_message(message="自动获取失败，请检查以下项目\n\n①确保没有连接手机热点\n②已经登录过校园网需先断开\n③检查是否开启网络代理\n④检查网线连接", title="错误")
+                self.pushButton_3.setText("自动获取")
+
+            if mode == "nomsgbox_autologin":
+                self.save_config()
+                self.Main_window.try_auto_connect()
+
+        self.pushButton_3.setEnabled(False)
+        self.pushButton_3.setText("正在获取中...")
+        get_userip_thread = Get_Userip_Thread()
+        get_userip_thread.signals.enable_buttoms.connect(get_ip_status)
+        get_userip_thread.signals.finished.connect(get_ip_status)
+        get_userip_thread.signals.print_text.connect(self.Main_window.update_list)
+        state.threadpool.start(get_userip_thread)
+        # try:
+        #     response = requests.get(url="http://189.cn/", timeout=2, proxies={"http": None, "https": None})
+        #     state.esurfingurl = re.search(
+        #         "http://(.+?)/", response.url).group(1)
+        #     state.wlanacip = re.search(
+        #         "wlanacip=(.+?)&", response.url).group(1)
+        #     state.wlanuserip = re.search(
+        #         "wlanuserip=(.+)", response.url).group(1)
+        #     self.get_config_value()
+        #     try:
+        #         self.pushButton.setEnabled(True)
+        #         self.Main_window.update_list("成功获取参数")
+        #     except:
+        #         pass
+        # except Exception as e:
+        #     if "'NoneType' object has no attribute 'group'" in str(e):
+        #         self.Main_window.update_list(
+        #             f"没有从重定向的链接中获取到参数，请检查网线连接，或者是否已经能够上网了？{e}")
+        #     else:
+        #         self.Main_window.update_list(f"自动获取失败，请检查以下项目\n\n①确保没有连接手机热点\n②已经登录过校园网需先断开\n③检查是否开启网络代理\n④检查网线连接\n{e}")
+        #         self.Main_window.show_message(message="自动获取失败，请检查以下项目\n\n①确保没有连接手机热点\n②已经登录过校园网需先断开\n③检查是否开启网络代理\n④检查网线连接", title="错误")
+        #     self.pushButton.setEnabled(False)
 
     def run_settings_window(self):
         self.showNormal()  # 恢复窗口（如果被最小化）

@@ -46,6 +46,9 @@ class Ui_sac_settings(object):
         self.pushButton_3.setMinimumSize(QtCore.QSize(0, 33))
         self.pushButton_3.setObjectName("pushButton_3")
         self.verticalLayout.addWidget(self.pushButton_3)
+        self.checkBox_autoCheckIP = QtWidgets.QCheckBox(self.frame)
+        self.checkBox_autoCheckIP.setObjectName("checkBox_autoCheckIP")
+        self.verticalLayout.addWidget(self.checkBox_autoCheckIP)
         self.label = QtWidgets.QLabel(self.frame)
         self.label.setObjectName("label")
         self.verticalLayout.addWidget(self.label)
@@ -210,6 +213,8 @@ class Ui_sac_settings(object):
         _translate = QtCore.QCoreApplication.translate
         sac_settings.setWindowTitle(_translate("sac_settings", "Form"))
         self.pushButton_3.setText(_translate("sac_settings", "自动获取"))
+        self.checkBox_autoCheckIP.setToolTip(_translate("sac_settings", "自动登录开启时，每次都重新获取一次登录信息。这可能适用于在学校不同地方接入网络时IP变化的问题。"))
+        self.checkBox_autoCheckIP.setText(_translate("sac_settings", "自动登录时触发获取"))
         self.label.setText(_translate("sac_settings", "登录URL"))
         self.label_2.setText(_translate("sac_settings", "登录服务器IP"))
         self.label_3.setText(_translate("sac_settings", "本地IP"))

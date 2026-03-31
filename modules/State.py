@@ -16,7 +16,7 @@ class global_state:
             return
         self._initialized = True
 
-        self.version = 1.66
+        self.version = 1.67
 
         # 获取用户 AppData\Roaming 路径
         self.config_path = None
@@ -42,6 +42,7 @@ class global_state:
         self.mulit_info = {}
         self.enable_easytier = None
         self.auto_share = False
+        self.auto_update_userip = None # 自动检查用户IP是否变化的开关位
 
         # EasyTier相关配置
         self.et_port = 51145
