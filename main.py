@@ -114,7 +114,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.auto_connect_reload_ip()
             else:
                 self.try_auto_connect()
-                
+
             self.start_easytier()
 
         except Exception as e:
