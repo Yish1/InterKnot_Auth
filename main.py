@@ -73,6 +73,46 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.read_config()
             self.get_password()
             self.add_account_to_combox()
+
+            # 初始化Setting
+            self.settings_window = settingsWindow(self)
+
+            # 绑定按钮功能
+            self.pushButton.clicked.connect(self.login)
+            self.pushButton_2.clicked.connect(self.logout)
+            self.checkBox.clicked.connect(lambda checked: (self.update_config(
+                "save_pwd", "1" if checked else "0") or self.init_save_password(checked)))
+
+            self.checkBox_2.clicked.connect(lambda: self.update_config(
+                "auto_connect", 1 if self.checkBox_2.isChecked() else 0) or (
+                    self.checkBox.setChecked(True) if self.checkBox_2.isChecked() else None) or (
+                        self.add_to_startup() if self.checkBox_2.isChecked() else self.add_to_startup(1)) or (self.update_config("save_pwd", 1))
+            )
+            self.checkBox_auto_share.clicked.connect(
+                lambda checked: self.enable_auto_share(checked))
+
+            self.checkBox_t.clicked.connect(lambda: self.change_login_mode(
+                1 if self.checkBox_t.isChecked() else 0))
+
+            self.checkBox_dog.clicked.connect(lambda: self.update_config(
+                "enable_watch_dog", 1 if self.checkBox_dog.isChecked() else 0) or (self.update_list("看门狗将在下次登录时开启，持续监测网络状态，根据网卡状态智能重连") if self.checkBox_dog.isChecked() else self.update_list("看门狗已禁用")))
+
+            self.pushButton_3.clicked.connect(
+                lambda: web.open_new("https://cmxz.top"))
+            self.run_settings_action.triggered.connect(self.run_settings)
+            self.pushButton_4.clicked.connect(self.settings_window.mulit_login_now)
+            self.pushButton_enable_share.clicked.connect(
+                lambda: self.start_easytier(True))
+
+            self.comboBox_username.currentTextChanged.connect(self.on_user_changed)
+            view = self.comboBox_username.view()
+            view.setContextMenuPolicy(Qt.CustomContextMenu)
+            view.customContextMenuRequested.connect(self.show_combo_menu)
+
+            # 启动后运行
+            self.try_auto_connect()
+            self.start_easytier()
+
         except Exception as e:
             trace = traceback.format_exc()
             detail = (
@@ -82,45 +122,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.write_to_log(detail)
             self.show_message(detail, "错误")
             sys.exit()
-
-        # 初始化Setting
-        self.settings_window = settingsWindow(self)
-
-        # 绑定按钮功能
-        self.pushButton.clicked.connect(self.login)
-        self.pushButton_2.clicked.connect(self.logout)
-        self.checkBox.clicked.connect(lambda checked: (self.update_config(
-            "save_pwd", "1" if checked else "0") or self.init_save_password(checked)))
-
-        self.checkBox_2.clicked.connect(lambda: self.update_config(
-            "auto_connect", 1 if self.checkBox_2.isChecked() else 0) or (
-                self.checkBox.setChecked(True) if self.checkBox_2.isChecked() else None) or (
-                    self.add_to_startup() if self.checkBox_2.isChecked() else self.add_to_startup(1)) or (self.update_config("save_pwd", 1))
-        )
-        self.checkBox_auto_share.clicked.connect(
-            lambda checked: self.enable_auto_share(checked))
-
-        self.checkBox_t.clicked.connect(lambda: self.change_login_mode(
-            1 if self.checkBox_t.isChecked() else 0))
-
-        self.checkBox_dog.clicked.connect(lambda: self.update_config(
-            "enable_watch_dog", 1 if self.checkBox_dog.isChecked() else 0) or (self.update_list("看门狗将在下次登录时开启，持续监测网络状态，根据网卡状态智能重连") if self.checkBox_dog.isChecked() else self.update_list("看门狗已禁用")))
-
-        self.pushButton_3.clicked.connect(
-            lambda: web.open_new("https://cmxz.top"))
-        self.run_settings_action.triggered.connect(self.run_settings)
-        self.pushButton_4.clicked.connect(self.settings_window.mulit_login_now)
-        self.pushButton_enable_share.clicked.connect(
-            lambda: self.start_easytier(True))
-
-        self.comboBox_username.currentTextChanged.connect(self.on_user_changed)
-        view = self.comboBox_username.view()
-        view.setContextMenuPolicy(Qt.CustomContextMenu)
-        view.customContextMenuRequested.connect(self.show_combo_menu)
-
-        # 启动后运行
-        self.try_auto_connect()
-        self.start_easytier()
 
     def init_log(self):
         os.makedirs(state.config_dir, exist_ok=True)
@@ -363,17 +364,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         else:
             self.update_list(f"创建开机自启失败：{r.stderr or r.stdout}\n尝试以管理员权限运行软件")
 
+    def update_login_config(self):
+        self.update_list("正在重新获取登录IP......")
+        self.settings_window.get_default()
+        self.update_config('esurfingurl', str(state.esurfingurl))
+        self.update_config('wlanuserip', str(state.wlanuserip))
+        self.update_config('wlanacip', str(state.wlanacip))
+
     def try_auto_connect(self):
 
-        # 直接自动获取覆盖登录IP信息，设为1时生效。
-        if state.auto_update_userip == "1":
-            self.update_list("正在重新获取登录IP......")
-            settingsWindow.get_default(self.settings_window)
-            update_entry('esurfingurl', str(state.esurfingurl), state.config_path)
-            update_entry('wlanuserip', str(state.wlanuserip) , state.config_path)
-            update_entry('wlanacip', str(state.wlanacip), state.config_path)
-
         self.read_config()
+        if state.auto_update_userip == "1":
+            self.update_login_config()
 
         if state.auto_connect == "1":
             self.update_list("正在尝试自动连接...")

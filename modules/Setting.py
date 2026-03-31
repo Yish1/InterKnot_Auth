@@ -45,8 +45,7 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
         self.pushButton_7.clicked.connect(self.clear_config)
         self.pushButton_8.clicked.connect(
             lambda: os.startfile(state.config_dir))
-        self.checkBox_autoCheckIP.clicked.connect(lambda: self.Main_window.update_config(
-            "auto_update_userip", 1 if self.checkBox_autoCheckIP.isChecked() else 0) or (self.Main_window.update_list("将在下次自动登录时重新获取IP") if self.checkBox_autoCheckIP.isChecked() else self.Main_window.update_list("自动更新登录IP已关闭")))
+        self.checkBox_autoCheckIP.clicked.connect(lambda: self.Main_window.update_list("将在每次自动登录前重新获取IP") if self.checkBox_autoCheckIP.isChecked() else self.Main_window.update_list("自动更新登录IP已关闭"))
 
         self.get_config_value()
 
@@ -327,6 +326,7 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
             f"隧道端口: {state.et_port} | WebUI: {state.et_webui_port}")
         self.checkBox_2.setChecked(True if state.et_enable_ipv6 else False)
         self.checkBox.setChecked(True if state.et_enable_webdl else False)
+        self.checkBox_autoCheckIP.setChecked(True if state.auto_update_userip == "1" else False)
 
     def save_config(self):
         self.Main_window.update_config("esurfingurl", self.lineEdit.text())
@@ -337,6 +337,8 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
             "et_enable_ipv6", 1 if self.checkBox_2.isChecked() else 0)
         self.Main_window.update_config(
             "et_enable_webdl", 1 if self.checkBox.isChecked() else 0)
+        self.Main_window.update_config(
+            "auto_update_userip", 1 if self.checkBox_autoCheckIP.isChecked() else 0)
         self.close()
 
     def get_default(self):

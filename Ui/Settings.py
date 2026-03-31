@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'Settings.ui'
+# Form implementation generated from reading ui file 'f:\Github\SEIG-Auto-Connect\Ui\Settings.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.11
 #
@@ -214,7 +214,7 @@ class Ui_sac_settings(object):
         sac_settings.setWindowTitle(_translate("sac_settings", "Form"))
         self.pushButton_3.setText(_translate("sac_settings", "自动获取"))
         self.checkBox_autoCheckIP.setToolTip(_translate("sac_settings", "自动登录开启时，每次都重新获取一次登录信息。这可能适用于在学校不同地方接入网络时IP变化的问题。"))
-        self.checkBox_autoCheckIP.setText(_translate("sac_settings", "每次自动登录都获取一次"))
+        self.checkBox_autoCheckIP.setText(_translate("sac_settings", "自动登录时触发获取"))
         self.label.setText(_translate("sac_settings", "登录URL"))
         self.label_2.setText(_translate("sac_settings", "登录服务器IP"))
         self.label_3.setText(_translate("sac_settings", "本地IP"))
@@ -239,4 +239,4 @@ class Ui_sac_settings(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), _translate("sac_settings", "关于"))
         self.pushButton.setText(_translate("sac_settings", "保存"))
         self.pushButton_2.setText(_translate("sac_settings", "取消"))
-import res.res_rc #新生成的ui代码把这里改成了 'import res_rc'，但是IDE标红了，所以改回原来的
+import res.res_rc
