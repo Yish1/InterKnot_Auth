@@ -369,7 +369,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.update_list(f"创建开机自启失败：{r.stderr or r.stdout}\n尝试以管理员权限运行软件")
 
     def auto_connect_reload_ip(self):
-        if state.auto_update_userip == "1":
+        if state.auto_connect == "1":
             self.update_list("正在重新获取登录IP......")
             self.settings_window.get_default(mode="nomsgbox_autologin")
 
