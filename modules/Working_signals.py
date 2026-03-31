@@ -16,4 +16,3 @@ class WorkerSignals(QObject):
     jar_login_success = pyqtSignal()
     login_status = pyqtSignal(object)
     run_settings = pyqtSignal()
-    get_userip_status = pyqtSignal(bool, str)
