@@ -2,6 +2,7 @@ import re
 import os
 import requests
 import webbrowser as web
+from pathlib import Path
 import win32com.client
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QSystemTrayIcon, QMenu, QAction, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
@@ -57,14 +58,13 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
 
         if reply == QMessageBox.Yes:
             try:
-                if os.path.exists(state.config_path):
-                    os.remove(state.config_path)
+                Path(state.config_dir, "secret.dat").unlink(missing_ok=True)
+                Path(state.config_path).unlink(missing_ok=True)
                 self.Main_window.read_config()
                 self.get_config_value()
-                self.Main_window.radioButton_2.setChecked(True)
-                self.Main_window.lineEdit.setText("")
+                self.Main_window.comboBox_username.clear()
                 self.Main_window.lineEdit_2.setText("")
-                self.show_message("配置已清除并恢复默认值！", "成功")
+                self.show_message("配置已清除并恢复默认值！\n\n建议重启此工具", "成功")
             except Exception as e:
                 self.show_message(f"清除配置失败: {e}", "错误")
         else:
