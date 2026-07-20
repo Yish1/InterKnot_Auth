@@ -7,4 +7,3 @@ PyQt5
 pywin32
 nuitka
 pycryptodome
-keyring
