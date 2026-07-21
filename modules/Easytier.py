@@ -154,7 +154,10 @@ enable_ipv6 = {"true" if state.et_enable_ipv6 == 1 else "false"}
         if not r:
             return  # 找不到EasyTier Core
 
-        self.print_to_all(f"ET: 启动绳网共享进程...")
+        if state.et_en_userconf == 1:
+            self.print_to_all(f"ET: 启动Easytier，使用自定义配置文件 {config_path}...")
+        else:
+            self.print_to_all(f"ET: 启动绳网共享进程...")
 
         if hasattr(self.main_window, 'et_process') and self.main_window.et_process is not None:
             if isinstance(self.main_window.et_process, subprocess.Popen) and self.main_window.et_process.poll() is None:

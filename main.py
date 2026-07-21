@@ -865,6 +865,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.show_message(message="您已连接隧道，如需启动共享需先断开隧道!", title="错误")
                 return
 
+            if state.et_en_userconf == 1 and os.path.exists(state.et_userconf_path) == False:
+                self.show_message(
+                    message=f"找不到自定义配置文件{state.et_userconf_path}\n请重新选择配置文件路径 或 关闭自定义配置模式！", title="配置文件丢失")
+                return
+
             try:
                 self.pushButton_enable_share.setText("停止共享")
                 self.pushButton_enable_share.clicked.disconnect()

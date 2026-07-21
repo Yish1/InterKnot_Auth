@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>393</width>
-    <height>507</height>
+    <width>350</width>
+    <height>430</height>
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
@@ -30,8 +30,8 @@
     font-size: 10pt;
 }</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_2">
-   <item row="2" column="0">
+  <layout class="QGridLayout" name="gridLayout_5">
+   <item row="1" column="0">
     <widget class="QFrame" name="frame_2">
      <property name="minimumSize">
       <size>
@@ -201,77 +201,33 @@
       <attribute name="toolTip">
        <string>通过Easytier建立网络共享</string>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout_5">
-       <item row="11" column="0" colspan="2">
-        <widget class="QLabel" name="label_local_ip">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="styleSheet">
-          <string notr="true"/>
-         </property>
-         <property name="text">
-          <string>本机IP：</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="11" column="2">
-        <widget class="QComboBox" name="comboBox">
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="lineEdit_et_userconf">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-        </widget>
-       </item>
-       <item row="1" column="0" colspan="5">
-        <widget class="QLabel" name="label_6">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="maximumSize">
+         <property name="minimumSize">
           <size>
-           <width>16777215</width>
-           <height>70</height>
+           <width>0</width>
+           <height>0</height>
           </size>
          </property>
-         <property name="styleSheet">
-          <string notr="true">QLabel {
-    color: rgb(152, 152, 152);
-}</string>
+         <property name="contextMenuPolicy">
+          <enum>Qt::DefaultContextMenu</enum>
          </property>
-         <property name="text">
-          <string>开启网络共享后，本机将作为出口节点通过 EasyTier 共享网络，其他绳网用户可通过输入本机 IP 和密钥连接使用，设备数量不限。通过主页“启用共享”建立隧道。</string>
-         </property>
-         <property name="scaledContents">
-          <bool>false</bool>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignHCenter|Qt::AlignTop</set>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1" colspan="2">
-        <widget class="QLineEdit" name="lineEdit_et_userconf">
          <property name="readOnly">
           <bool>true</bool>
          </property>
+         <property name="clearButtonEnabled">
+          <bool>false</bool>
+         </property>
         </widget>
        </item>
-       <item row="7" column="0" colspan="5">
+       <item row="4" column="0" colspan="2">
         <widget class="QGroupBox" name="groupBox">
          <property name="title">
           <string>隧道配置</string>
@@ -304,6 +260,9 @@
               <height>23</height>
              </size>
             </property>
+            <property name="focusPolicy">
+             <enum>Qt::WheelFocus</enum>
+            </property>
            </widget>
           </item>
           <item row="1" column="0">
@@ -322,7 +281,7 @@
           <item row="1" column="1" colspan="2">
            <widget class="QLineEdit" name="lineEdit_4">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -345,23 +304,66 @@
          </layout>
         </widget>
        </item>
-       <item row="9" column="0" colspan="3">
-        <widget class="QLabel" name="label_8">
+       <item row="0" column="0" colspan="2">
+        <widget class="QLabel" name="label_6">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+          <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>70</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QLabel {
+    color: rgb(152, 152, 152);
+}</string>
+         </property>
          <property name="text">
-          <string>端口：</string>
+          <string>开启网络共享后，本机将作为出口节点通过 EasyTier 共享网络，其他绳网用户可通过输入本机 IP 和密钥连接使用，设备数量不限。通过主页“启用共享”建立隧道。</string>
+         </property>
+         <property name="scaledContents">
+          <bool>false</bool>
          </property>
          <property name="alignment">
-          <set>Qt::AlignCenter</set>
+          <set>Qt::AlignHCenter|Qt::AlignTop</set>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
-       <item row="8" column="0" colspan="3">
+       <item row="8" column="0" colspan="2">
+        <widget class="QComboBox" name="comboBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0" colspan="2">
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>10</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="5" column="0" colspan="2">
         <widget class="QCheckBox" name="checkBox">
          <property name="layoutDirection">
           <enum>Qt::LeftToRight</enum>
@@ -371,7 +373,26 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="0">
+       <item row="2" column="0">
+        <widget class="QRadioButton" name="radioButton_userconfig">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>自定义隧道配置</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0" colspan="2">
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -387,28 +408,21 @@
          </property>
         </spacer>
        </item>
-       <item row="2" column="0">
-        <widget class="QRadioButton" name="radioButton_userconfig">
+       <item row="6" column="0" colspan="2">
+        <widget class="QLabel" name="label_8">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
-          <string>使用自定义隧道配置</string>
+          <string>端口：</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
          </property>
         </widget>
-       </item>
-       <item row="10" column="0">
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>10</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>
@@ -493,10 +507,22 @@
           <string notr="true">font-size: 10pt;</string>
          </property>
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;感谢您接入 &lt;span style=&quot; font-weight:600;&quot;&gt;绳网（InterKnot）&lt;/span&gt;。&lt;/p&gt;&lt;p&gt;在无形的数据洪流之中，我们以结为契，以绳为网，将零散的节点重新编织。绳网源于对效率与自由的追求——让繁琐的认证流程化作一次优雅的连接。&lt;br/&gt;&lt;br/&gt;借助 EasyTier 的组网能力，已连接的设备还可作为出口节点，在封闭的边界之中，悄然编织属于自己的通路。&lt;/p&gt;&lt;p&gt;项目地址：&lt;a href=&quot;https://github.com/Yish1/InterKnot_Auth&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;github.com/Yish1/InterKnot_Auth&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;感谢您接入 &lt;/span&gt;&lt;span style=&quot; font-size:9pt; font-weight:600;&quot;&gt;绳网（InterKnot）&lt;/span&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;在无形的数据洪流之中，我们以结为契，以绳为网，将零散的节点重新编织。绳网源于对效率与自由的追求——让繁琐的认证流程化作一次优雅的连接。&lt;br/&gt;&lt;br/&gt;借助 EasyTier 的组网能力，已连接的设备还可作为出口节点，在封闭的边界之中，悄然编织属于自己的通路。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;项目地址：&lt;/span&gt;&lt;a href=&quot;https://github.com/Yish1/InterKnot_Auth&quot;&gt;&lt;span style=&quot; font-size:9pt; text-decoration: underline; color:#0000ff;&quot;&gt;github.com/Yish1/InterKnot_Auth&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="scaledContents">
+          <bool>false</bool>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
+         </property>
+         <property name="margin">
+          <number>0</number>
+         </property>
+         <property name="indent">
+          <number>-1</number>
          </property>
          <property name="openExternalLinks">
           <bool>true</bool>

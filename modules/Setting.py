@@ -28,7 +28,7 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
         self.setWindowFlags(self.windowFlags() & ~
                             QtCore.Qt.WindowMinMaxButtonsHint)
         # self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-        self.resize(340, 420)
+        self.resize(350, 430)
 
         self.Main_window = Main_window
         self.stop_flag = False
@@ -323,7 +323,7 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
         self.comboBox.clear()
         self.comboBox.addItem(local_ip if isinstance(
             local_ip, str) else local_ip[0])
-        self.comboBox.addItem("IP仅供参考，分享请使用物理IP")
+        self.comboBox.addItem("本机IP仅供参考，分享请使用物理接口IP")
 
         self.lineEdit_4.setText(state.et_secret_key)
         self.label_8.setText(
@@ -349,7 +349,7 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
         self.Main_window.update_config(
             "et_speed_limit", self.speed_limit_spinBox.value())
         self.Main_window.update_config(
-            "et_en_userconf", 1 if self.radioButton_userconfig.isChecked() else 0)
+            "et_en_userconf", 1 if (self.radioButton_userconfig.isChecked() and self.lineEdit_et_userconf.text()) else 0)
         self.Main_window.update_config(
             "et_userconf_path", self.lineEdit_et_userconf.text())
         self.close()
@@ -405,37 +405,33 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
         #     self.pushButton.setEnabled(False)
 
     def set_et_userconf(self, checked=False):
-        
-        def if_current_path(m):
-            if m == True:
-                self.lineEdit_et_userconf.show()
+
+        def apply_userconf_state(enabled):
+            self.lineEdit_et_userconf.setVisible(enabled)
+            self.groupBox.setEnabled(not enabled)
+            if enabled:
                 self.lineEdit_et_userconf.setText(state.et_userconf_path)
-                self.groupBox.setEnabled(False)  # 禁用其他设置
-            
-            elif m == False:
-                self.radioButton_userconfig.setChecked(False)
-                self.groupBox.setEnabled(True)
-                self.lineEdit_et_userconf.hide()
-                self.lineEdit_et_userconf.setText("")
+            else:
+                self.lineEdit_et_userconf.clear()
                 state.et_userconf_path = ""
-        
+
         if checked:
-
             # 弹出窗口选择文件路径
-            if state.et_userconf_path and os.path.exists(state.et_userconf_path):
-
-                if_current_path(True)
-                
+            if state.et_userconf_path:
+                apply_userconf_state(True)
             else:
                 file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
                     self, "选择自定义配置文件", "", "配置文件 (*.toml);;所有文件 (*.toml)")
                 if file_path:
                     state.et_userconf_path = file_path
-                    if_current_path(True)
+                    apply_userconf_state(True)
                 else:
-                    if_current_path(False)
+                    self.radioButton_userconfig.blockSignals(True)
+                    self.radioButton_userconfig.setChecked(False)
+                    self.radioButton_userconfig.blockSignals(False)
+                    apply_userconf_state(False)
         else:
-            if_current_path(False)
+            apply_userconf_state(False)
 
     def run_settings_window(self):
         self.showNormal()  # 恢复窗口（如果被最小化）
