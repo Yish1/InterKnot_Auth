@@ -466,6 +466,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             ('et_secret_key', "Hello_InterKnot", str),
             ('et_enable_ipv6', 0, int),
             ('et_enable_webdl', 1, int),
+            ('et_speed_limit', 0, int),
+            ('et_en_userconf', 0, int),
+            ('et_userconf_path', "", str),
         ]
 
         # try:

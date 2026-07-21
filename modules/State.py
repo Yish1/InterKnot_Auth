@@ -16,7 +16,7 @@ class global_state:
             return
         self._initialized = True
 
-        self.version = 1.67
+        self.version = 1.68
 
         # 获取用户 AppData\Roaming 路径
         self.config_path = None
@@ -50,6 +50,9 @@ class global_state:
         self.et_secret_key = "Hello_InterKnot"
         self.et_enable_ipv6 = False
         self.et_enable_webdl = True
+        self.et_speed_limit = 0
+        self.et_en_userconf = 0
+        self.et_userconf_path = ""
 
         # 运行时变量
         self.stop_watch_dog = False

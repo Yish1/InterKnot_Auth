@@ -20,8 +20,8 @@ class easytier_thread(QRunnable):
         self.mode = mode
         self.route_added = False
 
-    def check_config_exist(self):
-        easytier_config_path = os.path.join(state.config_dir, "easytier.toml")
+    def check_config_exist(self, path):
+        easytier_config_path = path
 
         if self.mode == "server":
 
@@ -41,6 +41,7 @@ bind_device = true
 dev_name = "InterKnot"
 enable_exit_node = true
 enable_ipv6 = {"true" if state.et_enable_ipv6 == 1 else "false"}
+speed_limit = {state.et_speed_limit}
 '''
         elif self.mode == "client":
             toml = f'''
@@ -58,6 +59,7 @@ uri = "wg://{state.username}:51145"
 [flags]
 rpc_portal = "15888"
 dev_name = "InterKnot"
+enable_ipv6 = {"true" if state.et_enable_ipv6 == 1 else "false"}
 '''
 
         with open(easytier_config_path, "w") as f:
@@ -138,7 +140,16 @@ dev_name = "InterKnot"
             state.webui_thread.start()
 
     def run(self):
-        self.check_config_exist()
+        if state.et_en_userconf == 1:
+            config_path = state.et_userconf_path
+            if not os.path.exists(config_path):
+                self.print_to_all(f"错误：找不到用户配置文件 {config_path}！\n请重新设置文件路径或在设置中关闭自定义配置模式！")
+                self.signals.finished.emit()
+                return
+        else:
+            config_path = os.path.join(state.config_dir, "easytier.toml")
+            self.check_config_exist(config_path)
+
         r = self.check_et_exist()
         if not r:
             return  # 找不到EasyTier Core
@@ -157,7 +168,7 @@ dev_name = "InterKnot"
         self.main_window.et_process = subprocess.Popen(
             [self.easytier_executable,
              "-c",
-             os.path.join(state.config_dir, "easytier.toml")],
+             config_path],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             encoding="utf-8",
@@ -185,7 +196,7 @@ dev_name = "InterKnot"
                 self.start_webui()
 
             if "new peer connection added" in lower_line and self.mode == "client":
-                self.signals.print_text.emit("ET: 已连接到绳网节点，即将添加路由...\nET: 正在等待TUN网卡...")
+                self.signals.print_text.emit("ET: 已连接到绳网节点，即将添加路由...\nET: 正在创建TUN网卡，请耐心等待...")
                 if tun_ok and not self.route_added:
                     self.add_route()
 
@@ -201,7 +212,7 @@ dev_name = "InterKnot"
             if "connecting to peer" in lower_line and self.mode == "client":
                 connect_times += 1
                 if connect_times % 5 == 0 and connect_times < 50:
-                    self.signals.print_text.emit("ET: 绳网节点无响应，仍在尝试中...")
+                    self.signals.print_text.emit("ET: 绳网节点无响应，重新连接中...")
                 
                 if connect_times >= 500:
                     connect_times = 0

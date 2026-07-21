@@ -48,7 +48,9 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
         self.pushButton_8.clicked.connect(
             lambda: os.startfile(state.config_dir))
         self.checkBox_autoCheckIP.clicked.connect(lambda: self.Main_window.update_list("将在每次自动登录前重新获取IP") if self.checkBox_autoCheckIP.isChecked() else self.Main_window.update_list("自动更新登录IP已关闭"))
-
+        self.radioButton_userconfig.toggled.connect(lambda: self.set_et_userconf(checked=self.radioButton_userconfig.isChecked()))
+        self.lineEdit_et_userconf.hide()
+        
         self.get_config_value()
 
     def clear_config(self):
@@ -329,6 +331,9 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
         self.checkBox_2.setChecked(True if state.et_enable_ipv6 else False)
         self.checkBox.setChecked(True if state.et_enable_webdl else False)
         self.checkBox_autoCheckIP.setChecked(True if state.auto_update_userip == "1" else False)
+        self.radioButton_userconfig.setChecked(True if state.et_en_userconf == 1 else False)
+        self.lineEdit_et_userconf.setText(state.et_userconf_path)
+        self.speed_limit_spinBox.setValue(int(state.et_speed_limit))
 
     def save_config(self):
         self.Main_window.update_config("esurfingurl", self.lineEdit.text())
@@ -341,6 +346,12 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
             "et_enable_webdl", 1 if self.checkBox.isChecked() else 0)
         self.Main_window.update_config(
             "auto_update_userip", 1 if self.checkBox_autoCheckIP.isChecked() else 0)
+        self.Main_window.update_config(
+            "et_speed_limit", self.speed_limit_spinBox.value())
+        self.Main_window.update_config(
+            "et_en_userconf", 1 if self.radioButton_userconfig.isChecked() else 0)
+        self.Main_window.update_config(
+            "et_userconf_path", self.lineEdit_et_userconf.text())
         self.close()
 
     def get_default(self, mode=""):
@@ -392,6 +403,39 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
         #         self.Main_window.update_list(f"自动获取失败，请检查以下项目\n\n①确保没有连接手机热点\n②已经登录过校园网需先断开\n③检查是否开启网络代理\n④检查网线连接\n{e}")
         #         self.Main_window.show_message(message="自动获取失败，请检查以下项目\n\n①确保没有连接手机热点\n②已经登录过校园网需先断开\n③检查是否开启网络代理\n④检查网线连接", title="错误")
         #     self.pushButton.setEnabled(False)
+
+    def set_et_userconf(self, checked=False):
+        
+        def if_current_path(m):
+            if m == True:
+                self.lineEdit_et_userconf.show()
+                self.lineEdit_et_userconf.setText(state.et_userconf_path)
+                self.groupBox.setEnabled(False)  # 禁用其他设置
+            
+            elif m == False:
+                self.radioButton_userconfig.setChecked(False)
+                self.groupBox.setEnabled(True)
+                self.lineEdit_et_userconf.hide()
+                self.lineEdit_et_userconf.setText("")
+                state.et_userconf_path = ""
+        
+        if checked:
+
+            # 弹出窗口选择文件路径
+            if state.et_userconf_path and os.path.exists(state.et_userconf_path):
+
+                if_current_path(True)
+                
+            else:
+                file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+                    self, "选择自定义配置文件", "", "配置文件 (*.toml);;所有文件 (*.toml)")
+                if file_path:
+                    state.et_userconf_path = file_path
+                    if_current_path(True)
+                else:
+                    if_current_path(False)
+        else:
+            if_current_path(False)
 
     def run_settings_window(self):
         self.showNormal()  # 恢复窗口（如果被最小化）
