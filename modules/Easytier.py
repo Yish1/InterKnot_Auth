@@ -1,8 +1,10 @@
 from PyQt5.QtCore import QThreadPool, pyqtSignal, QRunnable
 
+from pathlib import Path
 from modules.State import global_state
 from modules.Working_signals import WorkerSignals
 from .WebUI import WebUIThread
+from modules.SecurityManager import *
 
 import subprocess
 import os
@@ -142,6 +144,22 @@ enable_ipv6 = {"true" if state.et_enable_ipv6 == 1 else "false"}
     def run(self):
         if state.et_en_userconf == 1:
             config_path = state.et_userconf_path
+            # 如果文件名是 encrypted_userconf.toml，则尝试解密
+            if os.path.basename(config_path) == "encrypted_userconf.toml":
+                try:
+                    content = Path(config_path).read_text(encoding="utf-8")
+                    decrypted_content = SecurityManager.decrypt(content, SecurityManager.get_encryption_key())
+                    # 在系统temp下创建tunnel.toml文件
+                    temp_dir = Path(os.getenv("TEMP", "/tmp"))
+                    decrypted_path = temp_dir / "tunnel.toml"
+                    decrypted_path.write_text(decrypted_content, encoding="utf-8")
+                    config_path = str(decrypted_path)
+
+                except Exception as e:
+                    self.print_to_all(f"ET: 解密自定义配置文件失败\n可能是文件损坏或更换了设备，密钥由设备唯一机器码生成\n: {e}")
+                    self.signals.finished.emit()
+                    return
+                
             if not os.path.exists(config_path):
                 self.print_to_all(f"错误：找不到用户配置文件 {config_path}！\n请重新设置文件路径或在设置中关闭自定义配置模式！")
                 self.signals.finished.emit()
@@ -188,7 +206,7 @@ enable_ipv6 = {"true" if state.et_enable_ipv6 == 1 else "false"}
             line = line.strip()
             lower_line = line.lower()
 
-            if "network_secret = " in line:
+            if any(k in line for k in ("network_secret = ", "instance_name", "uri", "network_name = ")):
                 continue
 
             # 成功启动
@@ -197,6 +215,7 @@ enable_ipv6 = {"true" if state.et_enable_ipv6 == 1 else "false"}
                 self.signals.print_text.emit(text)
                 connect_times = 0
                 self.start_webui()
+                os.remove(config_path) if state.et_en_userconf == 1 and os.path.basename(config_path) == "tunnel.toml" else None
 
             if "new peer connection added" in lower_line and self.mode == "client":
                 self.signals.print_text.emit("ET: 已连接到绳网节点，即将添加路由...\nET: 正在创建TUN网卡，请耐心等待...")
@@ -234,8 +253,11 @@ enable_ipv6 = {"true" if state.et_enable_ipv6 == 1 else "false"}
                     self.remove_et_route()
 
                 elif self.mode == "server":
-                    self.signals.print_text.emit(
-                        f"""ET: {line.split('remote_addr: Some(Url { url: "wg://')[1].split(':')[0]} 已断开连接！""")
+                    try:
+                        self.signals.print_text.emit(
+                            f"""ET: {line.split('remote_addr: Some(Url { url: "wg://')[1].split(':')[0]} 已断开连接！""")
+                    except Exception:
+                        self.signals.print_text.emit("ET: 节点已断开连接！")
 
             # 检测错误
             if any(k in lower_line for k in ("panic", "stopping", "error")) and output:

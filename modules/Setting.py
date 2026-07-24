@@ -1,9 +1,12 @@
 import re
 import os
+import base64
+import hashlib
 import requests
 import webbrowser as web
 from pathlib import Path
 import win32com.client
+from Crypto.Cipher import AES
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QSystemTrayIcon, QMenu, QAction, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
 from PyQt5.QtCore import QThreadPool, pyqtSignal, QRunnable, QObject, QTimer, QMutex
@@ -11,6 +14,7 @@ from Ui.Main_UI import Ui_MainWindow  # 导入ui文件
 from Ui.Settings import Ui_sac_settings
 from modules.SecurityManager import *
 from modules.Get_Userip_Thread import Get_Userip_Thread
+from modules.Decrypt_cmxztunnel import decrypt_cmxztunnel
 
 from modules.State import global_state
 
@@ -404,6 +408,17 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
         #         self.Main_window.show_message(message="自动获取失败，请检查以下项目\n\n①确保没有连接手机热点\n②已经登录过校园网需先断开\n③检查是否开启网络代理\n④检查网线连接", title="错误")
         #     self.pushButton.setEnabled(False)
 
+    def save_userconf_content(self, content):
+        output_path = Path(state.config_dir) / "encrypted_userconf.toml"
+        try:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            content = SecurityManager.encrypt(content, SecurityManager.get_encryption_key())
+            output_path.write_text(content, encoding="utf-8")
+            return str(output_path)
+        except Exception as e:
+            self.show_message(f"写入 encrypted_userconf.toml 失败: {e}", "错误")
+            return None
+
     def set_et_userconf(self, checked=False):
 
         def apply_userconf_state(enabled):
@@ -415,20 +430,50 @@ class settingsWindow(QtWidgets.QMainWindow, Ui_sac_settings):  # 设置窗口
                 self.lineEdit_et_userconf.clear()
                 state.et_userconf_path = ""
 
+        def disable_button_checked():
+            self.radioButton_userconfig.blockSignals(True)
+            self.radioButton_userconfig.setChecked(False)
+            self.radioButton_userconfig.blockSignals(False)
+
         if checked:
             # 弹出窗口选择文件路径
             if state.et_userconf_path:
                 apply_userconf_state(True)
             else:
                 file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
-                    self, "选择自定义配置文件", "", "配置文件 (*.toml);;所有文件 (*.toml)")
+                    self, "选择自定义配置文件", "", "配置文件 (*.toml *.cmxztunnel *.all);;所有文件 (*)")
                 if file_path:
-                    state.et_userconf_path = file_path
-                    apply_userconf_state(True)
+                    lower_path = file_path.lower()
+                    if lower_path.endswith(".cmxztunnel"):
+                        password, ok = QInputDialog.getText(
+                            self,
+                            "加密文件",
+                            "请输入密钥以解密文件：",
+                            QLineEdit.Password,
+                            ""
+                        )
+                        if ok and password:
+                            plain_text = decrypt_cmxztunnel(file_path, password)
+                            if plain_text and "listeners" in plain_text:
+                                saved_path = self.save_userconf_content(plain_text)
+                                if saved_path:
+                                    state.et_userconf_path = saved_path
+                                    apply_userconf_state(True)
+                                else:
+                                    disable_button_checked()
+                                    return
+                            else:
+                                self.show_message("密钥错误导致解密失败，或者解密后的文件不完整", "错误")
+                                disable_button_checked()
+                                return
+                        else:
+                            disable_button_checked()
+                            return
+                    else:
+                        state.et_userconf_path = file_path
+                        apply_userconf_state(True)
                 else:
-                    self.radioButton_userconfig.blockSignals(True)
-                    self.radioButton_userconfig.setChecked(False)
-                    self.radioButton_userconfig.blockSignals(False)
+                    disable_button_checked()
                     apply_userconf_state(False)
         else:
             apply_userconf_state(False)
