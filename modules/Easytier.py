@@ -145,14 +145,16 @@ enable_ipv6 = {"true" if state.et_enable_ipv6 == 1 else "false"}
         if state.et_en_userconf == 1:
             config_path = state.et_userconf_path
             # 如果文件名是 encrypted_userconf.toml，则尝试解密
-            if os.path.basename(config_path) == "encrypted_userconf.toml":
+            if os.path.basename(config_path) == "encrypted_userconf.cmxztunnel":
                 try:
                     content = Path(config_path).read_text(encoding="utf-8")
                     decrypted_content = SecurityManager.decrypt(content, SecurityManager.get_encryption_key())
+                    config, meta_json = decrypted_content.rsplit("CMXZMETA:", 1)
+
                     # 在系统temp下创建tunnel.toml文件
                     temp_dir = Path(os.getenv("TEMP", "/tmp"))
                     decrypted_path = temp_dir / "tunnel.toml"
-                    decrypted_path.write_text(decrypted_content, encoding="utf-8")
+                    decrypted_path.write_text(config, encoding="utf-8")
                     config_path = str(decrypted_path)
 
                 except Exception as e:
@@ -226,6 +228,15 @@ enable_ipv6 = {"true" if state.et_enable_ipv6 == 1 else "false"}
                 tun_ok = True
                 if not self.route_added:
                     self.add_route()
+
+            if "tun device ready" in lower_line and state.et_en_userconf == 1:
+                exit_ip = None
+                try:
+                    if 'exit_nodes = ["' in config:
+                        exit_ip = config.split('exit_nodes = ["', 1)[1].split('"]', 1)[0]
+                    self.signals.add_route.emit(exit_ip)
+                except Exception as e:
+                    self.signals.print_text.emit(f"ET: 添加路由失败，请手动添加路由！\n错误信息: {e}")
 
             if "remote: wg://" in lower_line and self.mode == "server":
                 self.signals.print_text.emit(

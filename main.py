@@ -4,6 +4,7 @@ import sys
 import ctypes
 import requests
 import time
+import json
 import msvcrt
 import ipaddress
 # import debugpy
@@ -15,7 +16,7 @@ import shutil
 import traceback
 import webbrowser as web
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QSystemTrayIcon, QMenu, QAction, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
+from PyQt5.QtWidgets import QApplication, QDialog, QDialogButtonBox, QFormLayout, QWidget, QInputDialog, QSystemTrayIcon, QMenu, QAction, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
 from PyQt5.QtCore import QThreadPool, pyqtSignal, QRunnable, QObject, Qt
 from PyQt5.QtGui import QColor
 
@@ -436,6 +437,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.settings_window.run_settings_window()
             except Exception as e:
                 self.update_list(f"无法打开设置界面{e}")
+                self.settings_window = None
 
         elif self.settings_window is not None and self.settings_window.isVisible() == True:
             print("设置界面已打开，无需重复打开！")
@@ -825,7 +827,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         msgBox.exec_()
         clickedButton = msgBox.clickedButton()
         if clickedButton == okButton:
-            os.system("start https://cmxz.top/SAC")
+            os.startfile("https://cmxz.top/SAC")
         else:
             self.update_list("检测到新版本！")
 
@@ -860,16 +862,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.update_config("login_mode", "1")
 
     def start_easytier(self, start=False):
-        if state.auto_share == "1" or start:
-            if hasattr(self, "et_connected") and self.et_connected == True:
-                self.show_message(message="您已连接隧道，如需启动共享需先断开隧道!", title="错误")
-                return
 
-            if state.et_en_userconf == 1 and os.path.exists(state.et_userconf_path) == False:
-                self.show_message(
-                    message=f"找不到自定义配置文件{state.et_userconf_path}\n请重新选择配置文件路径 或 关闭自定义配置模式！", title="配置文件丢失")
-                return
-
+        def run_tunnel_thread():
             try:
                 self.pushButton_enable_share.setText("停止共享")
                 self.pushButton_enable_share.clicked.disconnect()
@@ -883,12 +877,75 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     self.update_et_list)
                 self.easytier_thread.signals.finished.connect(
                     self.stop_easytier)
+                self.easytier_thread.signals.add_route.connect(
+                    self.add_route)
                 state.threadpool.start(self.easytier_thread)
                 self.menu_2.menuAction().setVisible(True)
 
             except Exception as e:
                 self.update_list(f"启动隧道失败：{e}")
                 self.menu_2.menuAction().setVisible(False)
+
+        if state.auto_share == "1" or start:
+            if hasattr(self, "et_connected") and self.et_connected == True:
+                self.show_message(message="您已连接隧道，如需启动共享需先断开隧道!", title="错误")
+                return
+
+            if state.et_en_userconf == 1 and os.path.exists(state.et_userconf_path) == False:
+                self.show_message(
+                    message=f"找不到自定义配置文件{state.et_userconf_path}\n请重新选择配置文件路径 或 关闭自定义配置模式！", title="配置文件丢失")
+                return
+            
+            elif state.et_en_userconf == 1 and os.path.basename(state.et_userconf_path) == "encrypted_userconf.cmxztunnel":
+                MAGIC = "CMXZMETA:"
+                with open(state.et_userconf_path, "rb") as f:
+                    data = f.read()
+                try:
+                    decrypted_content = SecurityManager.decrypt(data, SecurityManager.get_encryption_key())
+                    config, meta_json = decrypted_content.rsplit(MAGIC, 1)
+                except ValueError:
+                    self.show_message("自定义配置文件已损坏", "错误")
+
+                meta = json.loads(meta_json)
+
+                password = meta.get("password", "")
+                url = meta.get("url", "")
+
+                def on_tunnel_config(status, config=None, password=None, url=None, desc=None):
+                    if status == "success":
+                        waiting_box.accept() if waiting_box is not None else None
+                        self.update_list(f"已成功验证密钥，正在启动隧道...\n{desc}")
+                        run_tunnel_thread()
+
+                    elif status == "fail":
+                        waiting_box.accept() if waiting_box is not None else None
+                        if "403" in config:
+                            self.show_message(f"密钥已经过期，请重新输入密钥！", "错误")
+                            self.settings_window.set_et_userconf(True, url=url)
+                        else:
+                            self.show_message(f"无法与服务器通信: {config}，请尝试重新连接。", "错误")
+                        
+
+                waiting_box = QMessageBox(self)
+                waiting_box.setWindowTitle("验证中")
+                waiting_box.setWindowIcon(QtGui.QIcon(':/icon/yish.ico'))
+                waiting_box.setText("正在检查密钥，请稍候...")
+                waiting_box.setStandardButtons(QMessageBox.NoButton)
+                waiting_box.setModal(True)
+                waiting_box.show()
+
+                tunnel_thread = TunnelThread(password=password, url=url)
+                tunnel_thread.signals.tunnel_config.connect(
+                    on_tunnel_config)
+                # tunnel_thread.signals.show_message.connect(
+                #     self.show_message)
+                tunnel_thread.signals.finished.connect(
+                    lambda: waiting_box.accept() if waiting_box is not None else None)
+                
+                state.threadpool.start(tunnel_thread)
+
+            else:
+                run_tunnel_thread()
 
     def stop_easytier(self):
         try:
@@ -915,6 +972,47 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         except Exception as e:
             self.update_list(f"ET: 停止隧道失败：{e}")
 
+    def add_route(self, exit_ip=None):
+
+        dialog = AddRouteDialog(self)
+        if dialog.exec() == QDialog.Accepted:
+            network, ipmask = dialog.get_data()
+        else: 
+            return
+
+        interface_id = subprocess.check_output(
+            ["powershell", "-Command", "(Get-NetAdapter -Name 'et_interknot').InterfaceIndex"],
+            text=True,
+            encoding="utf-8",
+            creationflags=subprocess.CREATE_NO_WINDOW
+        ).strip()
+
+        cmd = [
+            "route",
+            "add",
+            network,
+            "mask",
+            ipmask,
+            exit_ip,
+            "if",
+            interface_id,
+            "metric",
+            "1"
+        ]
+
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            shell=False,
+            creationflags=subprocess.CREATE_NO_WINDOW
+        )
+
+        if result.returncode == 0:
+            self.update_list("ET: 路由添加成功")
+        else:
+            self.update_list(f"ET: 路由添加失败: {result.stderr}")
+
     def remove_et_route(self):
         cmd = [
             "route",
@@ -927,7 +1025,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             cmd,
             capture_output=True,
             text=True,
-            shell=True,
+            shell=False,
             creationflags=subprocess.CREATE_NO_WINDOW
         )
 
@@ -1066,6 +1164,42 @@ class login_Retry_Thread(QRunnable):
 
         self.signals.enable_buttoms.emit(1)
         self.signals.finished.emit()
+
+class AddRouteDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.setWindowTitle("是否添加路由?")
+        self.setMinimumWidth(350)
+
+        self.network_edit = QLineEdit()
+        self.network_edit.setPlaceholderText("0.0.0.0")
+        self.network_edit.setText("0.0.0.0")
+
+        self.mask_edit = QLineEdit()
+        self.mask_edit.setPlaceholderText("0.0.0.0")
+        self.mask_edit.setText("0.0.0.0")
+
+        form = QFormLayout()
+        form.addRow("路由网段：", self.network_edit)
+        form.addRow("子网掩码：", self.mask_edit)
+        form.addRow("出口IP：", QLabel("由隧道配置文件添加"))
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        )
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+
+        layout = QVBoxLayout(self)
+        layout.addLayout(form)
+        layout.addWidget(buttons)
+
+    def get_data(self):
+        return (
+            self.network_edit.text().strip(),
+            self.mask_edit.text().strip()
+        )
 
 
 if __name__ == "__main__":
