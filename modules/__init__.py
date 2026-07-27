@@ -10,6 +10,7 @@ from .Easytier import easytier_thread
 from .WebUI import WebUIThread, stop_webui_server
 from .SecurityManager import SecurityManager, DatManager
 from .Get_Userip_Thread import Get_Userip_Thread
+from .Get_tunnel_config import TunnelThread
 
 __all__ = [
     "global_state",
@@ -26,5 +27,6 @@ __all__ = [
     "stop_webui_server",
     "SecurityManager",
     "DatManager",
-    "Get_Userip_Thread"
+    "Get_Userip_Thread",
+    "TunnelThread"
 ]

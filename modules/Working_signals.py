@@ -16,3 +16,5 @@ class WorkerSignals(QObject):
     jar_login_success = pyqtSignal()
     login_status = pyqtSignal(object)
     run_settings = pyqtSignal()
+    tunnel_config = pyqtSignal(str, str, str, str, str)
+    add_route = pyqtSignal(str)
