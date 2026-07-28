@@ -1,10 +1,10 @@
 import requests
-import base64
 import json
 from PyQt5.QtCore import QRunnable
 
 from modules.State import global_state
 from modules.Working_signals import WorkerSignals
+from modules.Decrypt_cmxztunnel import decrypt_cmxztunnel
 
 state = global_state()
 
@@ -54,9 +54,10 @@ class TunnelThread(QRunnable):
             print(f"隧道描述: {description}")
 
             # 解码配置
-            config = base64.b64decode(
-                data["config"]
-            ).decode("utf-8")
+            config = decrypt_cmxztunnel(data["config"], self.password)
+
+            if config is None:
+                raise Exception("解密后的内容为None，可能是密钥错误或已吊销")
 
             self.signals.tunnel_config.emit(
                 "success",
@@ -69,7 +70,7 @@ class TunnelThread(QRunnable):
         except Exception as e:
             if "403" in str(e):
                 self.signals.show_message.emit(
-                    "密钥错误或已过期，请重新输入密钥！",
+                    "密钥错误或已吊销，请重新输入密钥！",
                     "错误"
                 )
             else:

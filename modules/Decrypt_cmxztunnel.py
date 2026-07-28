@@ -17,11 +17,11 @@ def show_message(message, title):
     msgBox.setText(message)
     msgBox.exec_()
 
-def decrypt_cmxztunnel(file_path, password):
+def decrypt_cmxztunnel(content, password):
     try:
-        raw_data = Path(file_path).read_bytes()
+        raw_data = base64.b64decode(content)
     except Exception as e:
-        show_message(f"读取 cmxztunnel 文件失败: {e}", "错误")
+        show_message(f"解码 cmxztunnel 内容失败: {e}", "错误")
         return None
 
     password_key = hashlib.sha256(password.encode("utf-8")).digest()
@@ -45,7 +45,7 @@ def decrypt_cmxztunnel(file_path, password):
             ciphertext = candidate[32:]
             cipher = AES.new(password_key, AES.MODE_GCM, nonce=nonce)
             plain_text = cipher.decrypt_and_verify(ciphertext, tag).decode("utf-8")
-            if "listeners" in plain_text:
+            if "peer" in plain_text:
                 return plain_text
         except Exception:
             continue

@@ -920,7 +920,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     elif status == "fail":
                         waiting_box.accept() if waiting_box is not None else None
                         if "403" in config:
-                            self.show_message(f"密钥已经过期，请重新输入密钥！", "错误")
+                            self.show_message(f"密钥已被吊销，要继续使用此隧道，需要输入新密钥！", "错误")
                             self.settings_window.set_et_userconf(True, url=url)
                         else:
                             self.show_message(f"无法与服务器通信: {config}，请尝试重新连接。", "错误")
@@ -929,7 +929,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 waiting_box = QMessageBox(self)
                 waiting_box.setWindowTitle("验证中")
                 waiting_box.setWindowIcon(QtGui.QIcon(':/icon/yish.ico'))
-                waiting_box.setText("正在检查密钥，请稍候...")
+                waiting_box.setText("正在联网校验密钥，请稍候...")
                 waiting_box.setStandardButtons(QMessageBox.NoButton)
                 waiting_box.setModal(True)
                 waiting_box.show()
