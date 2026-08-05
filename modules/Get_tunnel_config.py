@@ -57,7 +57,7 @@ class TunnelThread(QRunnable):
             config = decrypt_cmxztunnel(data["config"], self.password)
 
             if config is None:
-                raise Exception("解密成功，但配置中不包含 'peer'，可能是无效的隧道配置。")
+                raise Exception("解密后的内容为None，可能是密钥错误或已吊销")
 
             self.signals.tunnel_config.emit(
                 "success",

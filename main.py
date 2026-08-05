@@ -915,9 +915,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     if status == "success":
                         waiting_box.accept() if waiting_box is not None else None
                         self.update_list(f"已成功验证密钥，正在启动隧道...\n{desc}")
-                        path = self.settings_window.save_userconf_content(config, password, url)
-                        if path:
-                            state.et_userconf_path = path
                         run_tunnel_thread()
 
                     elif status == "fail":
@@ -926,7 +923,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                             self.show_message(f"密钥已被吊销，要继续使用此隧道，需要输入新密钥！", "错误")
                             self.settings_window.set_et_userconf(True, url=url)
                         else:
-                            self.show_message(f"启动失败: {config}", "错误")
+                            self.show_message(f"无法与服务器通信: {config}，请尝试重新连接。", "错误")
                         
 
                 waiting_box = QMessageBox(self)
